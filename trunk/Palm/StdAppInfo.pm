@@ -6,9 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.7 2000-08-29 03:19:56 arensb Exp $
-
-# XXX - Describe the fields that StdAppInfo creates
+# $Id: StdAppInfo.pm,v 1.8 2000-09-09 02:48:37 arensb Exp $
 
 # XXX - Methods for adding, removing categories
 
@@ -19,7 +17,7 @@ use Palm::Raw();
 # Don't harass me about these variables
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.7 $ ))[1];
+$VERSION = (qw( $Revision: 1.8 $ ))[1];
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -369,6 +367,10 @@ sub pack_StdAppInfo
 	# by a naive (or clever) user or broken program.
 	for ($i = 0; $i < numCategories; $i++)
 	{
+		# Skip unnamed categories to stop Perl from complaining
+		next if !defined($appinfo->{categories}[$i]{name}) ||
+			    $appinfo->{categories}[$i]{name} eq "";
+
 		$retval .= pack("a" . categoryLength,
 			$appinfo->{categories}[$i]{name});
 	}
