@@ -46,3 +46,5 @@ etc., please send mail to the maintainer, Andrew Arensburger, at
 	John Jannotti <jj@lcs.mit.edu>: patches to make Perl 5.6 shut up.
 	John-David Smith <jdsmith@astro.cornell.edu>: added "archive"
 		attribute.
+	Kenneth Lorber <keni@his.com>: fixed "pdbdump" to handle
+		arrays in parsed records (e.g., Datebook exceptions).
