@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.12 2000-07-19 03:58:45 arensb Exp $
+# $Id: PDB.pm,v 1.13 2000-08-02 03:19:43 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = (qw( $Revision: 1.12 $ ))[1];
+$VERSION = (qw( $Revision: 1.13 $ ))[1];
 
 =head1 NAME
 
@@ -412,6 +412,7 @@ sub Load
 
 	# Open database file
 	open PDB, "< $fname" or die "Can't open \"$fname\": $!\n";
+	binmode PDB;			# Read as binary file under MS-DOS
 
 	# Get the size of the file. It'll be useful later
 	seek PDB, 0, 2;		# 2 == SEEK_END. Seek to the end.
@@ -891,6 +892,7 @@ sub Write
 
 	# Open file
 	open OFILE, "> $fname" or die "Can't write to \"$fname\": $!\n";
+	binmode OFILE;			# Write as binary file under MS-DOS
 
 	# Get AppInfo block
 	my $appinfo_block = $self->PackAppInfoBlock;
