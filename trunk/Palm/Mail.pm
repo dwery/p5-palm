@@ -6,10 +6,10 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.4 2000-02-02 04:19:26 arensb Exp $
+# $Id: Mail.pm,v 1.5 2000-04-20 05:42:22 arensb Exp $
 
 package Palm::Mail;
-($VERSION) = '$Revision: 1.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
+($VERSION) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 =head1 NAME
 
@@ -96,6 +96,7 @@ respectively.
 An integer in the range 0-2, indicating the addressing type: To, Cc,
 or Bcc respectively. I don't know what this means.
 
+    $record->{"subject"}
     $record->{"from"}
     $record->{"to"}
     $record->{"cc"}
