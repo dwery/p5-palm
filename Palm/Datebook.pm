@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.9 2000-07-20 04:17:22 arensb Exp $
+# $Id: Datebook.pm,v 1.10 2000-08-02 03:17:31 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.9 $ ))[1];
+$VERSION = (qw( $Revision: 1.10 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -502,6 +502,8 @@ sub ParseRecord
 		$note = shift @fields;
 		$record{note} = $note;
 	}
+
+	delete $record{data};
 
 	return \%record;
 }
