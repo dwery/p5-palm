@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.14 2002-01-26 22:25:11 arensb Exp $
+# $Id: Address.pm,v 1.15 2002-05-09 14:33:58 arensb Exp $
 
 use strict;
 package Palm::Address;
@@ -17,7 +17,7 @@ use vars qw( $VERSION @ISA
 	$numFieldLabels $addrLabelLength @phoneLabels @countries );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.14 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.15 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
@@ -628,38 +628,19 @@ sub PackRecord
 		$companyFieldOff = length($fields) + 1;
 		$fields .= $record->{fields}{company} . "\0"
 	}
-	$fields .= $record->{fields}{phone1} . "\0"
-		unless $record->{fields}{phone1} eq "";
-	$fields .= $record->{fields}{phone2} . "\0"
-		unless $record->{fields}{phone2} eq "";
-	$fields .= $record->{fields}{phone3} . "\0"
-		unless $record->{fields}{phone3} eq "";
-	$fields .= $record->{fields}{phone4} . "\0"
-		unless $record->{fields}{phone4} eq "";
-	$fields .= $record->{fields}{phone5} . "\0"
-		unless $record->{fields}{phone5} eq "";
-	$fields .= $record->{fields}{address} . "\0"
-		unless $record->{fields}{address} eq "";
-	$fields .= $record->{fields}{city} . "\0"
-		unless $record->{fields}{city} eq "";
-	$fields .= $record->{fields}{state} . "\0"
-		unless $record->{fields}{state} eq "";
-	$fields .= $record->{fields}{zipCode} . "\0"
-		unless $record->{fields}{zipCode} eq "";
-	$fields .= $record->{fields}{country} . "\0"
-		unless $record->{fields}{country} eq "";
-	$fields .= $record->{fields}{title} . "\0"
-		unless $record->{fields}{title} eq "";
-	$fields .= $record->{fields}{custom1} . "\0"
-		unless $record->{fields}{custom1} eq "";
-	$fields .= $record->{fields}{custom2} . "\0"
-		unless $record->{fields}{custom2} eq "";
-	$fields .= $record->{fields}{custom3} . "\0"
-		unless $record->{fields}{custom3} eq "";
-	$fields .= $record->{fields}{custom4} . "\0"
-		unless $record->{fields}{custom4} eq "";
-	$fields .= $record->{fields}{note} . "\0"
-		unless $record->{fields}{note} eq "";
+
+	# Append each nonempty field in turn to $fields.
+	foreach my $fieldname (qw(phone1 phone2 phone3 phone4 phone5
+			address city state zipCode country title
+			custom1 custom2 custom3 custom4 note))
+	{
+		# Skip empty fields (either blank or undefined).
+		next if !defined($record->{fields}{$fieldname});
+		next if $record->{fields}{$fieldname} eq "";
+
+		# Append the field (with a terminating NUL)
+		$fields .= $record->{fields}{$fieldname} . "\0";
+	}
 
 	$retval .= pack("C", $companyFieldOff);
 	$retval .= $fields;
