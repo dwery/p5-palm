@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.25 2002-06-16 12:34:58 azummo Exp $
+# $Id: PDB.pm,v 1.26 2002-06-16 13:26:11 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.25 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.26 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 =head1 NAME
 
@@ -97,16 +97,7 @@ sub new
 
 	# Initialize the PDB. These values are just defaults, of course.
 	$self->{name} = "";
-	$self->{attributes} = {
-		resource	=> 0,
-		"read-only"	=> 0,
-		"AppInfo dirty"	=> 0,
-		backup		=> 0,
-		"OK newer"	=> 0,
-		reset		=> 0,
-		open		=> 0,
-		launchable	=> 0,	# For PQAs
-	};
+	$self->{attributes} = {};
 	$self->{version} = 0;
 
 	my $now = time;
@@ -1027,6 +1018,11 @@ sub Write
 			$attributes |= 0x10
 				if $record->{attributes}{private};
 
+			$attributes |= 0x80 if $record->{'attributes'}{'Delete'};
+			$attributes |= 0x40 if $record->{'attributes'}{'Dirty'};
+			$attributes |= 0x20 if $record->{'attributes'}{'Busy'};
+			$attributes |= 0x10 if $record->{'attributes'}{'Secret'};
+
 			$id = $record->{id};
 
 			$data = $self->PackRecord($record);
@@ -1039,7 +1035,7 @@ sub Write
 	}
 
 	my $header;
-	my $attributes;
+	my $attributes = 0x0000;
 	my $appinfo_offset;
 	my $sort_offset;
 
@@ -1052,6 +1048,21 @@ sub Write
 		($self->{attributes}{"OK newer"}	? 0x0010 : 0) |
 		($self->{attributes}{reset}		? 0x0020 : 0) |
 		($self->{attributes}{open}		? 0x8000 : 0);
+
+	$attributes |= 0x0001 if $self->{'attributes'}{'ResDB'};
+	$attributes |= 0x0002 if $self->{'attributes'}{'ReadOnly'};
+	$attributes |= 0x0004 if $self->{'attributes'}{'AppInfoDirty'};
+	$attributes |= 0x0008 if $self->{'attributes'}{'Backup'};
+	$attributes |= 0x0010 if $self->{'attributes'}{'OKToInstallNewer'};
+	$attributes |= 0x0020 if $self->{'attributes'}{'ResetAfterInstall'};
+	$attributes |= 0x0040 if $self->{'attributes'}{'CopyPrevention'};
+	$attributes |= 0x0080 if $self->{'attributes'}{'Stream'};
+	$attributes |= 0x0100 if $self->{'attributes'}{'Hidden'};
+	$attributes |= 0x0200 if $self->{'attributes'}{'LaunchableData'};
+	$attributes |= 0x0400 if $self->{'attributes'}{'Recyclable'};
+	$attributes |= 0x0800 if $self->{'attributes'}{'Bundle'};
+	$attributes |= 0x8000 if $self->{'attributes'}{'Open'};	
+
 
 	# Calculate AppInfo block offset
 	if ((!defined($appinfo_block)) || ($appinfo_block eq ""))
@@ -1247,11 +1258,12 @@ sub new_Record
 	# Initialize the record
 	$retval->{category} = 0;	# Unfiled, by convention
 	$retval->{attributes} = {
-		expunged	=> 0,
+#		expunged	=> 0,
 		dirty		=> 1,	# Note: originally dirty
-		deleted		=> 0,
-		private		=> 0,
-		archive         => 0,
+		'Dirty'		=> 1,
+#		deleted		=> 0,
+#		private		=> 0,
+#		archive         => 0,
 	};
 	$retval->{id} = 0;		# Initially, no record ID
 
