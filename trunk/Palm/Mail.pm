@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.13 2002-01-26 22:25:14 arensb Exp $
+# $Id: Mail.pm,v 1.14 2002-03-23 13:38:22 arensb Exp $
 
 use strict;
 package Palm::Mail;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.13 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.14 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -357,11 +357,11 @@ sub ParseRecord
 	# sending these strings as they are to 'sendmail', which is
 	# better equipped to parse them.
 
-	$to =~ s/\s*\n\s*(?!$)/, /gs;
-	$cc =~ s/\s*\n\s*(?!$)/, /gs;
-	$bcc =~ s/\s*\n\s*(?!$)/, /gs;
-	$replyTo =~ s/\s*\n\s*(?!$)/, /gs;
-	$sentTo =~ s/\s*\n\s*(?!$)/, /gs;
+	$to =~ s/\s*\n\s*(?!$)/, /gs if defined($to);
+	$cc =~ s/\s*\n\s*(?!$)/, /gs if defined($cc);
+	$bcc =~ s/\s*\n\s*(?!$)/, /gs if defined($bcc);
+	$replyTo =~ s/\s*\n\s*(?!$)/, /gs if defined($replyTo);
+	$sentTo =~ s/\s*\n\s*(?!$)/, /gs if defined($sentTo);
 
 	$record{subject} = $subject;
 	$record{from} = $from;
