@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.22 2002-02-01 14:09:27 arensb Exp $
+# $Id: PDB.pm,v 1.23 2002-02-15 14:40:59 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.22 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.23 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 =head1 NAME
 
@@ -453,7 +453,7 @@ sub Load
 	$uniqueIDseed) =
 		unpack "a32 n n N N N N N N a4 a4 N", $buf;
 
-	($self->{name} = $name) =~ s/\0*$//;
+	($self->{name} = $name) =~ s/\0.*$//;
 	$self->{attributes}{resource} = 1 if $attributes & 0x0001;
 	$self->{attributes}{"read-only"} = 1 if $attributes & 0x0002;
 	$self->{attributes}{"AppInfo dirty"} = 1 if $attributes & 0x0004;
