@@ -6,12 +6,14 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.3 1999-12-06 04:11:55 arensb Exp $
+# $Id: Address.pm,v 1.4 2000-01-23 06:24:05 arensb Exp $
 
 package Palm::Address;
 
 # AddressDB records are quite flexible and customizable, and therefore
 # a pain in the ass to deal with correctly.
+
+# XXX - Methods for adding, removing categories.
 
 use Palm::Raw();
 
@@ -66,6 +68,122 @@ sub import
 	&Palm::PDB::RegisterPDBHandlers(__PACKAGE__,
 		[ "addr", "DATA" ],
 		);
+}
+
+# XXX - Document this
+# new
+# Create a new Palm::Address database, and return it
+sub new
+{
+	my $classname	= shift;
+	my $self	= $classname->SUPER::new(@_);
+			# Create a generic PDB. No need to rebless it,
+			# though.
+
+	$self->{"name"} = "AddressDB";	# Default
+	$self->{"creator"} = "addr";
+	$self->{"type"} = "DATA";
+	$self->{"attributes"}{"resource"} = 0;
+				# The PDB is not a resource database by
+				# default, but it's worth emphasizing,
+				# since AddressDB is explicitly not a PRC.
+
+	# Initialize the AppInfo block
+	$self->{"appinfo"} = {
+		renamed		=> 0,	# Dunno what this is
+		categories	=> [],	# List of category names
+		uniqueIDs	=> [],	# List of category IDs
+		fieldLabels	=> {
+			# Displayed labels for the various fields in
+			# each address record.
+			# XXX - These are American English defaults. It'd
+			# be way keen to allow i18n.
+			name		=> "Name",
+			firstName	=> "First name",
+			company		=> "Company",
+			phone1		=> "Work",
+			phone2		=> "Home",
+			phone3		=> "Fax",
+			phone4		=> "Other",
+			phone5		=> "E-mail",
+			phone6		=> "Main",
+			phone7		=> "Pager",
+			phone8		=> "Mobile",
+			address		=> "Address",
+			city		=> "City",
+			state		=> "State",
+			zipCode		=> "Zip Code",
+			country		=> "Country",
+			title		=> "Title",
+			custom1		=> "Custom 1",
+			custom2		=> "Custom 2",
+			custom3		=> "Custom 3",
+			custom4		=> "Custom 4",
+			note		=> "Note",
+		},
+
+		# XXX - The country code corresponds to "United
+		# States". Again, it'd be keen to allow the user's #
+		# country-specific defaults.
+		country		=> 22,
+
+		misc		=> 0,
+	};
+
+	# Give the PDB a blank sort block
+	$self->{"sort"} = undef;
+
+	# Give the PDB an empty list of records
+	$self->{"records"} = [];
+
+	return $self;
+}
+
+# XXX - Document this
+
+# new_Record
+# Create a new, initialized record.
+sub new_Record
+{
+	my $classname = shift;
+	my $retval = $classname->SUPER::new_Record(@_);
+
+	# Initialize the fields. This isn't particularly enlightening,
+	# but every AddressDB record has these.
+	$retval->{"fields"} = {
+		name		=> undef,
+		firstName	=> undef, 
+		company		=> undef,
+		phone1		=> undef,
+		phone2		=> undef,
+		phone3		=> undef,
+		phone4		=> undef,
+		phone5		=> undef,
+		address		=> undef,
+		city		=> undef,
+		state		=> undef,
+		zipCode		=> undef,
+		country		=> undef,
+		title		=> undef,
+		custom1		=> undef,
+		custom2		=> undef,
+		custom3		=> undef,
+		custom4		=> undef,
+		note		=> undef,
+	};
+
+	# Initialize the phone labels
+	$retval->{"phoneLabel"} = {
+		phone1	=> 0,		# Work
+		phone2	=> 1,		# Home
+		phone3	=> 2,		# Fax
+		phone4	=> 3,		# Other
+		phone5	=> 4,		# E-mail
+		display	=> 0,		# Display work phone by default
+		reserved => undef	# ???
+	};
+
+	return $retval;
 }
 
 # ParseAppInfoBlock
@@ -183,16 +301,20 @@ sub PackAppInfoBlock
 {
 	my $self = shift;
 	my $retval;
+	my $i;
 
 	$retval = pack("n", $self->{"appinfo"}{"renamed"});
-	for (@{$self->{"appinfo"}{"categories"}})
+	for ($i = 0; $i < $numCategories; $i++)
 	{
-		$retval .= pack("a$categoryLength", $_);
+		$retval .= pack("a$categoryLength",
+				$self->{"appinfo"}{"categories"}[$i]);
 	}
-	for (@{$self->{"appinfo"}{"uniqueIDs"}})
+
+	for ($i = 0; $i < $numCategories; $i++)
 	{
-		$retval .= pack("C", $_);
+		$retval .= pack("C", $self->{"appinfo"}{"uniqueIDs"}[$i]);
 	}
+
 	$retval .= pack("C x3 N",
 		$self->{"appinfo"}{"lastUniqueID"},
 		$self->{"appinfo"}{"dirtyFields"});
