@@ -6,15 +6,15 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.7 2000-05-07 06:31:07 arensb Exp $
+# $Id: Mail.pm,v 1.8 2000-05-13 05:12:51 arensb Exp $
 
 use strict;
 package Palm::Mail;
 use Palm::Raw();
-use Palm::StdAppInfo;
+use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.7 $ ) )[1];
+$VERSION = (qw( $Revision: 1.8 $ ) )[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -210,6 +210,8 @@ sub new_Record
 	$retval->{sentTo} = undef;
 
 	$retval->{body} = "";
+
+	return $retval;
 }
 
 # ParseAppInfoBlock
