@@ -2,11 +2,11 @@
 # 
 # Perl class for dealing with Palm DateBook databases. 
 #
-#	Copyright (C) 1999, 2000, Andrew Arensburger.
+#	Copyright (C) 1999-2001, Andrew Arensburger.
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.14 2001-02-24 16:49:40 arensb Exp $
+# $Id: Datebook.pm,v 1.15 2001-03-30 06:23:45 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.14 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d", '$Revision: 1.15 $ ' =~ m{(\d+)\.(\d+)};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -51,8 +51,13 @@ This is a scalar, the raw data of the sort block.
     $record->{month}
     $record->{year}
 
-The day, month and year of the event. For repeating events, this is
-the first date at which the event occurs.
+The day, month and year of the event. The day and month start at 1
+(I<i.e.>, for January, C<$record-E<gt>{month}> is set to 1). The year
+is a four-digit number (for dates in 2001, C<$record-E<gt>{year}> is
+"2001").
+
+For repeating events, these fields specify the first date at which the
+event occurs.
 
     $record->{start_hour}
     $record->{start_minute}
@@ -250,9 +255,11 @@ sub new_Record
 
 	# By default, the new record is an untimed event that occurs
 	# today.
-	($retval->{day},
-	 $retval->{month},
-	 $retval->{year}) = (localtime(time))[3, 4, 5];
+	my @now = localtime(time);
+
+	$retval->{day}		= $now[3];
+	$retval->{month}	= $now[4] + 1;
+	$retval->{year}		= $now[5] + 1900;
 
 	$retval->{start_hour} =
 	$retval->{start_minute} =
@@ -559,8 +566,8 @@ sub PackRecord
 	if (defined($record->{repeat}) && %{$record->{repeat}})
 	{
 		my $type;		# Repeat type
-		my $endDate;
-		my $repeatOn;
+		my $endDate = 0xffff;	# No end date defined by default
+		my $repeatOn = 0;
 		my $repeatStartOfWeek = 0;
 
 		$flags |= 0x2000;
@@ -574,9 +581,6 @@ sub PackRecord
 					& 0x000f) << 5) |
 				((($record->{repeat}{end_year} - 1904)
 					& 0x007f) << 9);
-		} else {
-			# No end date defined
-			$endDate = 0xffff;
 		}
 
 		if ($record->{repeat}{type} == 2)
