@@ -8,13 +8,14 @@
 # You may also find it useful to subclass this class, for cases where
 # you don't care about every type of thing in a database.
 #
-#	Copyright (C) 1999, Andrew Arensburger.
+#	Copyright (C) 1999, 2000, Andrew Arensburger.
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Raw.pm,v 1.3 1999-11-18 08:24:45 arensb Exp $
+# $Id: Raw.pm,v 1.4 2000-02-01 12:31:41 arensb Exp $
 
 package Palm::Raw;
+($VERSION) = '$Revision: 1.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 use Palm::PDB;
 
