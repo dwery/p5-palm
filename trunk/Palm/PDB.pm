@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.13 2000-08-02 03:19:43 arensb Exp $
+# $Id: PDB.pm,v 1.14 2000-08-04 04:12:35 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = (qw( $Revision: 1.13 $ ))[1];
+$VERSION = (qw( $Revision: 1.14 $ ))[1];
 
 =head1 NAME
 
@@ -671,7 +671,7 @@ sub _load_appinfo_block
 	{
 		# The next thing in the file is the sort block
 		$len = $pdb->{_sort_offset} - $pdb->{_appinfo_offset};
-	} elsif ((defined $pdb->{_index}) && (@{$pdb->{_index}} != ()))
+	} elsif ((defined $pdb->{_index}) && @{$pdb->{_index}})
 	{
 		# There's no sort block; the next thing in the file is
 		# the first data record
