@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.15 2002-05-09 14:33:58 arensb Exp $
+# $Id: Address.pm,v 1.16 2002-05-09 15:08:49 arensb Exp $
 
 use strict;
 package Palm::Address;
@@ -14,10 +14,11 @@ use Palm::Raw();
 use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA
-	$numFieldLabels $addrLabelLength @phoneLabels @countries );
+	$numFieldLabels $addrLabelLength @phoneLabels @countries
+	%fieldMapBits );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.15 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.16 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
@@ -190,6 +191,32 @@ $numFieldLabels = 22;
 	"Switzerland",
 	"United Kingdom",
 	"United States",
+);
+
+# fieldMapBits
+# Each Address record contains a flag record ($fieldMap, in
+# &PackRecord) that indicates which fields exist in the record. This
+# hash defines these flags' values.
+%fieldMapBits = (
+	name		=> 0x0001,
+	firstName	=> 0x0002,
+	company		=> 0x0004,
+	phone1		=> 0x0008,
+	phone2		=> 0x0010,
+	phone3		=> 0x0020,
+	phone4		=> 0x0040,
+	phone5		=> 0x0080,
+	address		=> 0x0100,
+	city		=> 0x0200,
+	state		=> 0x0400,
+	zipCode		=> 0x0800,
+	country		=> 0x1000,
+	title		=> 0x2000,
+	custom1		=> 0x4000,
+	custom2		=> 0x8000,
+	custom3		=> 0x10000,
+	custom4		=> 0x20000,
+	note		=> 0x40000,
 );
 
 sub import
@@ -591,28 +618,22 @@ sub PackRecord
 		(($record->{phoneLabel}{display}  & 0x0f) << 20) |
 		(($record->{phoneLabel}{reserved} & 0xff) << 24));
 
-	my $fieldMap;
+	# Set the flag bits that indicate which fields exist in this
+	# record.
+	my $fieldMap = 0;
 
-	$fieldMap = 0;
-	$fieldMap |= 0x0001 if $record->{fields}{name} ne "";
-	$fieldMap |= 0x0002 if $record->{fields}{firstName} ne "";
-	$fieldMap |= 0x0004 if $record->{fields}{company} ne "";
-	$fieldMap |= 0x0008 if $record->{fields}{phone1} ne "";
-	$fieldMap |= 0x0010 if $record->{fields}{phone2} ne "";
-	$fieldMap |= 0x0020 if $record->{fields}{phone3} ne "";
-	$fieldMap |= 0x0040 if $record->{fields}{phone4} ne "";
-	$fieldMap |= 0x0080 if $record->{fields}{phone5} ne "";
-	$fieldMap |= 0x0100 if $record->{fields}{address} ne "";
-	$fieldMap |= 0x0200 if $record->{fields}{city} ne "";
-	$fieldMap |= 0x0400 if $record->{fields}{state} ne "";
-	$fieldMap |= 0x0800 if $record->{fields}{zipCode} ne "";
-	$fieldMap |= 0x1000 if $record->{fields}{country} ne "";
-	$fieldMap |= 0x2000 if $record->{fields}{title} ne "";
-	$fieldMap |= 0x4000 if $record->{fields}{custom1} ne "";
-	$fieldMap |= 0x8000 if $record->{fields}{custom2} ne "";
-	$fieldMap |= 0x10000 if $record->{fields}{custom3} ne "";
-	$fieldMap |= 0x20000 if $record->{fields}{custom4} ne "";
-	$fieldMap |= 0x40000 if $record->{fields}{note} ne "";
+	foreach my $fieldname (qw(name firstName company
+			phone1 phone2 phone3 phone4 phone5
+			address city state zipCode country title
+			custom1 custom2 custom3 custom4
+			note))
+	{
+		if (defined($record->{fields}{$fieldname}) &&
+		    ($record->{fields}{$fieldname} ne ""))
+		{
+			$fieldMap |= $fieldMapBits{$fieldname};
+		}
+	}
 
 	$retval .= pack("N", $fieldMap);
 
