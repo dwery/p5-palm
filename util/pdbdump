@@ -1,0 +1,52 @@
+#!/usr/bin/perl
+#
+# Dump a Palm PDB or PRC database.
+#
+# $Id: pdbdump,v 1.1 2000-04-24 10:02:01 arensb Exp $
+
+use strict;
+use Palm::PDB;
+
+&Palm::PDB::RegisterPDBHandlers("Parser", ["", ""]);
+
+my $PDB = new Palm::PDB;
+$PDB->Load($ARGV[0]);
+
+sub hexdump
+{
+	my $prefix = shift;
+	my $data = shift;
+	my $chunk;		# Current 16-byte chunk of data
+	my $hex;		# $chunk, as a set of hex numbers
+	my $ascii;		# $chunk, as printable characters
+
+	while (length($data) > 0)
+	{
+		$chunk = substr $data, 0, 16;
+		$data = substr $data, 16;
+		($hex = $chunk) =~ s/./sprintf("%02x ", ord($&))/egs;
+		($ascii = $chunk) =~ tr/\040-\176/./c;
+		printf "%s %-48s |%-16s|\n", $prefix, $hex, $ascii;
+	}
+}
+
+package Parser;
+
+sub ParseAppInfoBlock
+{
+	my $self = shift;
+	my $data = shift;
+
+	&main::hexdump("APP", $data);
+	return $data;
+}
+
+sub ParseRecord
+{
+	my $self = shift;
+	my %record = @_;
+
+	&main::hexdump("REC", $record{"data"});
+}
+
+1;
