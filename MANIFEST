@@ -4,6 +4,7 @@ README
 FAQ
 TODO
 Makefile.PL
+Palm.pm
 Palm/Address.pm
 Palm/Datebook.pm
 Palm/Mail.pm
@@ -30,3 +31,4 @@ t/MemoDB.pdb
 t/memo.t
 t/ToDoDB.pdb
 t/todo.t
+t/mkpdbname.t
