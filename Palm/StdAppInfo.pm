@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.14 2001-06-02 19:17:15 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.15 2001-06-05 13:04:34 arensb Exp $
 
 use strict;
 package Palm::StdAppInfo;
@@ -16,7 +16,7 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA $error );
 	# $error acts like $! in that it reports the error that occurred
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.14 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d", '$Revision: 1.15 $ ' =~ m{(\d+)\.(\d+)};
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -439,9 +439,8 @@ message.
 
 =cut
 #'
-# XXX - Should try to find a category whose name is "" and which is
-# not marked "renamed". That way, renamed categories linger longer,
-# and have a better chance of being synced with the Palm.
+# XXX - When choosing a new category ID, should pick them from the
+# range 128-255.
 sub addCategory
 {
 	my $self = shift;	# PDB
@@ -520,7 +519,9 @@ sub deleteCategory
 
 		# Erase this category
 		$_->{name} = "";
-		$_->{renamed} = 1;
+
+		# You'd think it would make sense to set the "renamed"
+		# field here, but the Palm doesn't do that.
 	}
 }
 
@@ -536,6 +537,8 @@ an error message.
 
 =cut
 #'
+# XXX - This doesn't behave the same way as the Palm: the Palm also
+# picks a new category ID.
 sub renameCategory
 {
 	my $self = shift;
