@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.34 2004-04-09 02:55:21 christophe Exp $
+# $Id: PDB.pm,v 1.35 2004-04-16 01:21:42 christophe Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.34 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.35 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 =head1 NAME
 
@@ -487,6 +487,9 @@ sub Load
 	$uniqueIDseed) =
 		unpack "a32 n n N N N N N N a4 a4 N", $buf;
 
+	# database names must include a terminating NUL.
+	die "bogus database name! is this really a PalmOS file?" unless $name =~ /.+\0/;
+
 	($self->{name} = $name) =~ s/\0.*$//;
 	$self->{attributes}{resource} = 1 if $attributes & 0x0001;
 	$self->{attributes}{"read-only"} = 1 if $attributes & 0x0002;
@@ -525,6 +528,17 @@ sub Load
 	$self->{type} = $type;
 	$self->{creator} = $creator;
 	$self->{uniqueIDseed} = $uniqueIDseed;
+
+	# XXX strictly speaking, ctime/mtime/baktime values before 1990 are quite
+	# unlikely. Palm was founded in 1992, so even allowing for some prototypes.
+	# This is another way one could detect bogus databases.
+
+	if( $self->{_appinfo_offset} > $self->{_size} ) {
+		die "AppInfo block offset beyond end of file!";
+	}
+	if( $self->{_sort_offset} > $self->{_size} ) {
+		die "Sort block offset beyond end of file!";
+	}
 
 	# Rebless this PDB object, depending on its type and/or
 	# creator. This allows us to magically invoke the proper
@@ -856,6 +870,10 @@ sub _load_records
 				" but it's at ",
 				sprintf("[0x%08x]", tell($fh)), "\n";
 		}
+		
+		if( $pdb->{_index}[$i]{offset} > $pdb->{_size} ) {
+			die "corruption: Record $i beyond end of database!";
+		}
 
 		# Seek to the right place, if necessary
 		if (tell($fh) != $pdb->{_index}[$i]{offset})
@@ -917,6 +935,10 @@ sub _load_resources
 					$pdb->{_index}[$i]{offset}),
 				" but it's at ",
 				sprintf("0x%08x", tell($fh)), "\n";
+		}
+
+		if( $pdb->{_index}[$i]{offset} > $pdb->{_size} ) {
+			die "corruption: Resource $i beyond end of database!";
 		}
 
 		# Seek to the right place, if necessary
