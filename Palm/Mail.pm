@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.6 2000-04-24 09:59:15 arensb Exp $
+# $Id: Mail.pm,v 1.7 2000-05-07 06:31:07 arensb Exp $
 
 use strict;
 package Palm::Mail;
@@ -14,7 +14,7 @@ use Palm::Raw();
 use Palm::StdAppInfo;
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.6 $ ) )[1];
+$VERSION = (qw( $Revision: 1.7 $ ) )[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -37,71 +37,71 @@ L<Palm::StdAppInfo> for details.
 
 Other fields include:
 
-    $pdb->{"appinfo"}{"sortOrder"}
-    $pdb->{"appinfo"}{"unsent"}
-    $pdb->{"appinfo"}{"sigOffset"}
+    $pdb->{appinfo}{sortOrder}
+    $pdb->{appinfo}{unsent}
+    $pdb->{appinfo}{sigOffset}
 
 I don't know what these are.
 
 =head2 Sort block
 
-    $pdb->{"sort"}
+    $pdb->{sort}
 
 This is a scalar, the raw data of the sort block.
 
 =head2 Records
 
-    $record = $pdb->{"records"}[N]
+    $record = $pdb->{records}[N]
 
-    $record->{"year"}
-    $record->{"month"}
-    $record->{"day"}
-    $record->{"hour"}
-    $record->{"minute"}
+    $record->{year}
+    $record->{month}
+    $record->{day}
+    $record->{hour}
+    $record->{minute}
 
 The message's timestamp.
 
-    $record->{"is_read"}
+    $record->{is_read}
 
 This is defined and true iff the message has been read.
 
-    $record->{"has_signature"}
+    $record->{has_signature}
 
 For outgoing messages, this is defined and true iff the message should
 have a signature attached. The signature itself is stored in the
 "Saved Preferences.prc" database, and is of type "mail" with ID 2.
 
-    $record->{"confirm_read"}
+    $record->{confirm_read}
 
 If this is defined and true, then the sender requests notification
 when the message has been read.
 
-    $record->{"confirm_delivery"}
+    $record->{confirm_delivery}
 
 If this is defined and true, then the sender requests notification
 when the message has been delivered.
 
-    $record->{"priority"}
+    $record->{priority}
 
 An integer in the range 0-2, for high, normal, or low priority,
 respectively.
 
-    $record->{"addressing"}
+    $record->{addressing}
 
 An integer in the range 0-2, indicating the addressing type: To, Cc,
 or Bcc respectively. I don't know what this means.
 
-    $record->{"subject"}
-    $record->{"from"}
-    $record->{"to"}
-    $record->{"cc"}
-    $record->{"bcc"}
-    $record->{"replyTo"}
-    $record->{"sentTo"}
+    $record->{subject}
+    $record->{from}
+    $record->{to}
+    $record->{cc}
+    $record->{bcc}
+    $record->{replyTo}
+    $record->{sentTo}
 
 Strings, the various header fields.
 
-    $record->{"body"}
+    $record->{body}
 
 A string, the body of the message.
 
@@ -136,27 +136,27 @@ sub new
 			# Create a generic PDB. No need to rebless it,
 			# though.
 
-	$self->{"name"} = "MailDB";	# Default
-	$self->{"creator"} = "mail";
-	$self->{"type"} = "DATA";
-	$self->{"attributes"}{"resource"} = 0;
+	$self->{name} = "MailDB";	# Default
+	$self->{creator} = "mail";
+	$self->{type} = "DATA";
+	$self->{attributes}{resource} = 0;
 				# The PDB is not a resource database by
 				# default, but it's worth emphasizing,
 				# since MailDB is explicitly not a PRC.
 
 	# Initialize the AppInfo block
-	$self->{"appinfo"} = {
+	$self->{appinfo} = {
 		sortOrder	=> undef,	# XXX - ?
 		unsent		=> undef,	# XXX - ?
 		sigOffset	=> 0,		# XXX - ?
 	};
 
 	# Add the standard AppInfo block stuff
-	&Palm::StdAppInfo::seed_StdAppInfo($self->{"appinfo"});
+	&Palm::StdAppInfo::seed_StdAppInfo($self->{appinfo});
 
-	$self->{"sort"} = undef;	# Empty sort block
+	$self->{sort} = undef;	# Empty sort block
 
-	$self->{"records"} = [];	# Empty list of records
+	$self->{records} = [];	# Empty list of records
 
 	return $self;
 }
@@ -185,31 +185,31 @@ sub new_Record
 	# the time when the user started composing it, but this is
 	# better than nothing.
 
-	($retval->{"year"},
-	 $retval->{"month"},
-	 $retval->{"day"},
-	 $retval->{"hour"},
-	 $retval->{"minute"}) = (localtime(time))[5,4,3,2,1];
+	($retval->{year},
+	 $retval->{month},
+	 $retval->{day},
+	 $retval->{hour},
+	 $retval->{minute}) = (localtime(time))[5,4,3,2,1];
 
-	$retval->{"is_read"} = 0;	# Message hasn't been read yet.
+	$retval->{is_read} = 0;	# Message hasn't been read yet.
 
 	# No delivery service notification (DSN) by default.
-	$retval->{"confirm_read"} = 0;
-	$retval->{"confirm_delivery"} = 0;
+	$retval->{confirm_read} = 0;
+	$retval->{confirm_delivery} = 0;
 
-	$retval->{"priority"} = 1;	# Normal priority
+	$retval->{priority} = 1;	# Normal priority
 
-	$retval->{"addressing"} = 0;	# XXX - ?
+	$retval->{addressing} = 0;	# XXX - ?
 
 	# All header fields empty by default.
-	$retval->{"from"} = undef;
-	$retval->{"to"} = undef;
-	$retval->{"cc"} = undef;
-	$retval->{"bcc"} = undef;
-	$retval->{"replyTo"} = undef;
-	$retval->{"sentTo"} = undef;
+	$retval->{from} = undef;
+	$retval->{to} = undef;
+	$retval->{cc} = undef;
+	$retval->{bcc} = undef;
+	$retval->{replyTo} = undef;
+	$retval->{sentTo} = undef;
 
-	$retval->{"body"} = "";
+	$retval->{body} = "";
 }
 
 # ParseAppInfoBlock
@@ -241,10 +241,10 @@ sub ParseAppInfoBlock
 	($dirtyAppInfo, $sortOrder, $unsent, $sigOffset) =
 		unpack $unpackstr, $data;
 
-	$appinfo->{"dirty_AppInfo"} = $dirtyAppInfo;
-	$appinfo->{"sort_order"} = $sortOrder;
-	$appinfo->{"unsent"} = $unsent;
-	$appinfo->{"sig_offset"} = $sigOffset;
+	$appinfo->{dirty_AppInfo} = $dirtyAppInfo;
+	$appinfo->{sort_order} = $sortOrder;
+	$appinfo->{unsent} = $unsent;
+	$appinfo->{sig_offset} = $sigOffset;
 
 	return $appinfo;
 }
@@ -255,14 +255,14 @@ sub PackAppInfoBlock
 	my $retval;
 
 	# Pack the standard part of the AppInfo block
-	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{"appinfo"});
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
 
 	# And the application-specific stuff
 	$retval .= pack "x2 n Cx N n",
-		$self->{"appinfo"}{"dirty_AppInfo"},
-		$self->{"appinfo"}{"sort_order"},
-		$self->{"appinfo"}{"unsent"},
-		$self->{"appinfo"}{"sig_offset"};
+		$self->{appinfo}{dirty_AppInfo},
+		$self->{appinfo}{sort_order},
+		$self->{appinfo}{unsent},
+		$self->{appinfo}{sig_offset};
 
 	return $retval;
 }
@@ -271,10 +271,10 @@ sub ParseRecord
 {
 	my $self = shift;
 	my %record = @_;
-	my $data = $record{"data"};
+	my $data = $record{data};
 
-	delete $record{"offset"};	# This is useless
-	delete $record{"data"};
+	delete $record{offset};	# This is useless
+	delete $record{data};
 
 	my $date;
 	my $hour;
@@ -309,11 +309,11 @@ sub ParseRecord
 		$year  = ($date >> 9) & 0x007f;	# 7 bits (years since 1904)
 		$year += 1904;
 
-		$record{"year"}   = $year;
-		$record{"month"}  = $month;
-		$record{"day"}    = $day;
-		$record{"hour"}   = $hour;
-		$record{"minute"} = $minute;
+		$record{year}   = $year;
+		$record{month}  = $month;
+		$record{day}    = $day;
+		$record{hour}   = $hour;
+		$record{minute} = $minute;
 	}
 
 	my $is_read		= ($flags & 0x8000);
@@ -329,12 +329,12 @@ sub ParseRecord
 	# Preferences.pdb" or, more simply, just read ~/.signature if
 	# it exists.
 
-	$record{"is_read"} = 1 if $is_read;
-	$record{"has_signature"} = 1 if $has_signature;
-	$record{"confirm_read"} = 1 if $confirm_read;
-	$record{"confirm_delivery"} = 1 if $confirm_delivery;
-	$record{"priority"} = $priority;
-	$record{"addressing"} = $addressing;
+	$record{is_read} = 1 if $is_read;
+	$record{has_signature} = 1 if $has_signature;
+	$record{confirm_read} = 1 if $confirm_read;
+	$record{confirm_delivery} = 1 if $confirm_delivery;
+	$record{priority} = $priority;
+	$record{addressing} = $addressing;
 
 	my $fields = substr $data, 6;
 	my @fields = split /\0/, $fields;
@@ -357,15 +357,15 @@ sub ParseRecord
 	$replyTo =~ s/\s*\n\s*(?!$)/, /gs;
 	$sentTo =~ s/\s*\n\s*(?!$)/, /gs;
 
-	$record{"subject"} = $subject;
-	$record{"from"} = $from;
-	$record{"to"} = $to;
-	$record{"cc"} = $cc;
-	$record{"bcc"} = $bcc;
-	$record{"reply_to"} = $replyTo;
-	$record{"sent_to"} = $sentTo;
-	$record{"body"} = $body;
-	$record{"extra"} = $extra;
+	$record{subject} = $subject;
+	$record{from} = $from;
+	$record{to} = $to;
+	$record{cc} = $cc;
+	$record{bcc} = $bcc;
+	$record{reply_to} = $replyTo;
+	$record{sent_to} = $sentTo;
+	$record{body} = $body;
+	$record{extra} = $extra;
 
 	return \%record;
 }
@@ -378,32 +378,32 @@ sub PackRecord
 	my $rawDate;
 	my $flags;
 
-	$rawDate = ($record->{"day"} & 0x001f) |
-		(($record->{"month"} & 0x000f) << 5) |
-		((($record->{"year"} - 1904) & 0x07f) << 9);
+	$rawDate = ($record->{day} & 0x001f) |
+		(($record->{month} & 0x000f) << 5) |
+		((($record->{year} - 1904) & 0x07f) << 9);
 	$flags = 0;
-	$flags |= 0x8000 if $record->{"is_read"};
-	$flags |= 0x4000 if $record->{"has_signature"};
-	$flags |= 0x2000 if $record->{"confirm_read"};
-	$flags |= 0x1000 if $record->{"confirm_delivery"};
-	$flags |= (($record->{"priority"} & 0x03) << 10);
-	$flags |= (($record->{"addressing"} & 0x03) << 8);
+	$flags |= 0x8000 if $record->{is_read};
+	$flags |= 0x4000 if $record->{has_signature};
+	$flags |= 0x2000 if $record->{confirm_read};
+	$flags |= 0x1000 if $record->{confirm_delivery};
+	$flags |= (($record->{priority} & 0x03) << 10);
+	$flags |= (($record->{addressing} & 0x03) << 8);
 
 	$retval = pack "n C C n",
 		$rawDate,
-		$record->{"hour"},
-		$record->{"minute"},
+		$record->{hour},
+		$record->{minute},
 		$flags;
 
 	$retval .= join "\0",
-		$record->{"subject"},
-		$record->{"from"},
-		$record->{"to"},
-		$record->{"cc"},
-		$record->{"bcc"},
-		$record->{"reply_to"},
-		$record->{"sent_to"},
-		$record->{"body"};
+		$record->{subject},
+		$record->{from},
+		$record->{to},
+		$record->{cc},
+		$record->{bcc},
+		$record->{reply_to},
+		$record->{sent_to},
+		$record->{body};
 	$retval .= "\0";
 
 	return $retval;

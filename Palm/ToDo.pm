@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ToDo.pm,v 1.5 2000-05-06 21:20:08 arensb Exp $
+# $Id: ToDo.pm,v 1.6 2000-05-07 06:34:11 arensb Exp $
 
 # XXX - Bug: apparently, the first ToDo item shows up with a category
 # of "unfiled"
@@ -18,7 +18,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.5 $ ))[1];
+$VERSION = (qw( $Revision: 1.6 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -41,41 +41,41 @@ L<Palm::StdAppInfo> for details.
 
 Other fields include:
 
-    $pdb->{"appinfo"}{"dirty_appinfo"}
-    $pdb->{"appinfo"}{"sortOrder"}
+    $pdb->{appinfo}{dirty_appinfo}
+    $pdb->{appinfo}{sortOrder}
 
 I don't know what these are.
 
 =head2 Sort block
 
-    $pdb->{"sort"}
+    $pdb->{sort}
 
 This is a scalar, the raw data of the sort block.
 
 =head2 Records
 
-    $record = $pdb->{"records"}[N]
+    $record = $pdb->{records}[N]
 
-    $record->{"due_day"}
-    $record->{"due_month"}
-    $record->{"due_year"}
+    $record->{due_day}
+    $record->{due_month}
+    $record->{due_year}
 
 The due date of the ToDo item. If the item has no due date, these are
 undefined.
 
-    $record->{"completed"}
+    $record->{completed}
 
 This is defined and true iff the item has been completed.
 
-    $record->{"priority"}
+    $record->{priority}
 
 An integer. The priority of the item.
 
-    $record->{"description"}
+    $record->{description}
 
 A text string. The description of the item.
 
-    $record->{"note"}
+    $record->{note}
 
 A text string. The note attached to the item. Undefined if the item
 has no note.
@@ -111,28 +111,28 @@ sub new
 			# Create a generic PDB. No need to rebless it,
 			# though.
 
-	$self->{"name"} = "ToDoDB";	# Default
-	$self->{"creator"} = "todo";
-	$self->{"type"} = "DATA";
-	$self->{"attributes"}{"resource"} = 0;
+	$self->{name} = "ToDoDB";	# Default
+	$self->{creator} = "todo";
+	$self->{type} = "DATA";
+	$self->{attributes}{resource} = 0;
 				# The PDB is not a resource database by
 				# default, but it's worth emphasizing,
 				# since ToDoDB is explicitly not a PRC.
 
 	# Initialize the AppInfo block
-	$self->{"appinfo"} = {
+	$self->{appinfo} = {
 		dirty_appinfo	=> undef,	# ?
 		sortOrder	=> undef,	# ?
 	};
 
 	# Add the standard AppInfo block stuff
-	&Palm::StdAppInfo::seed_StdAppInfo($self->{"appinfo"});
+	&Palm::StdAppInfo::seed_StdAppInfo($self->{appinfo});
 
 	# Give the PDB a blank sort block
-	$self->{"sort"} = undef;
+	$self->{sort} = undef;
 
 	# Give the PDB an empty list of records
-	$self->{"records"} = [];
+	$self->{records} = [];
 
 	return $self;
 }
@@ -153,16 +153,16 @@ sub new_Record
 	my $retval = $classname->SUPER::new_Record(@_);
 
 	# Item has no due date by default.
-	$retval->{"due_day"} = undef;
-	$retval->{"due_month"} = undef;
-	$retval->{"due_year"} = undef;
+	$retval->{due_day} = undef;
+	$retval->{due_month} = undef;
+	$retval->{due_year} = undef;
 
-	$retval->{"completed"} = 0;	# Not completed
-	$retval->{"priority"} = 1;
+	$retval->{completed} = 0;	# Not completed
+	$retval->{priority} = 1;
 
 	# Empty description, no note.
-	$retval->{"description"} = "";
-	$retval->{"note"} = undef;
+	$retval->{description} = "";
+	$retval->{note} = undef;
 
 	return $retval;
 }
@@ -191,8 +191,8 @@ sub ParseAppInfoBlock
 
 	($dirtyAppInfo, $sortOrder) = unpack $unpackstr, $data;
 
-	$appinfo->{"dirty_appinfo"} = $dirtyAppInfo;
-	$appinfo->{"sort_order"} = $sortOrder;
+	$appinfo->{dirty_appinfo} = $dirtyAppInfo;
+	$appinfo->{sort_order} = $sortOrder;
 
 	return $appinfo;
 }
@@ -203,12 +203,12 @@ sub PackAppInfoBlock
 	my $retval;
 
 	# Pack the standard part of the AppInfo block
-	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{"appinfo"});
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
 
 	# And the application-specific stuff
 	$retval .= pack("x2 n Cx",
-		$self->{"appinfo"}{"dirty_appinfo"},
-		$self->{"appinfo"}{"sort_order"});
+		$self->{appinfo}{dirty_appinfo},
+		$self->{appinfo}{sort_order});
 
 	return $retval;
 }
@@ -217,11 +217,10 @@ sub ParseRecord
 {
 	my $self = shift;
 	my %record = @_;
-	my $data = $record{"data"};
+	my $data = $record{data};
 
-print STDERR "Raw record contains keys {", join(", ", keys %record), "}\n";
-	delete $record{"offset"};	# This is useless
-	delete $record{"data"};		# No longer necessary
+	delete $record{offset};		# This is useless
+	delete $record{data};		# No longer necessary
 
 	my $date;
 	my $priority;
@@ -240,9 +239,9 @@ print STDERR "Raw record contains keys {", join(", ", keys %record), "}\n";
 		$year  = ($date >> 9) & 0x007f;	# 7 bits (years since 1904)
 		$year += 1904;
 
-		$record{"due_day"} = $day;
-		$record{"due_month"} = $month;
-		$record{"due_year"} = $year;
+		$record{due_day} = $day;
+		$record{due_month} = $month;
+		$record{due_year} = $year;
 	}
 
 	my $completed;		# Boolean
@@ -250,16 +249,16 @@ print STDERR "Raw record contains keys {", join(", ", keys %record), "}\n";
 	$completed = $priority & 0x80;
 	$priority &= 0x7f;	# Strip high bit
 
-	$record{"completed"} = 1 if $completed;
-	$record{"priority"} = $priority;
+	$record{completed} = 1 if $completed;
+	$record{priority} = $priority;
 
 	my $description;
 	my $note;
 
 	($description, $note) = split /\0/, $data;
 
-	$record{"description"} = $description;
-	$record{"note"} = $note unless $note eq "";
+	$record{description} = $description;
+	$record{note} = $note unless $note eq "";
 
 	return \%record;
 }
@@ -272,22 +271,22 @@ sub PackRecord
 	my $rawDate;
 	my $priority;
 
-	if (defined($record->{"due_day"}))
+	if (defined($record->{due_day}))
 	{
-		$rawDate = ($record->{"due_day"} & 0x001f) |
-			(($record->{"due_month"} & 0x000f) << 5) |
-			((($record->{"due_year"} - 1904) & 0x007f) << 9);
+		$rawDate = ($record->{due_day} & 0x001f) |
+			(($record->{due_month} & 0x000f) << 5) |
+			((($record->{due_year} - 1904) & 0x007f) << 9);
 	} else {
 		$rawDate = 0xffff;
 	}
-	$priority = $record->{"priority"} & 0x7f;
-	$priority |= 0x80 if $record->{"completed"};
+	$priority = $record->{priority} & 0x7f;
+	$priority |= 0x80 if $record->{completed};
 
 	$retval = pack "n C",
 		$rawDate,
 		$priority;
-	$retval .= $record->{"description"} . "\0";
-	$retval .= $record->{"note"} . "\0";
+	$retval .= $record->{description} . "\0";
+	$retval .= $record->{note} . "\0";
 
 	return $retval;
 }
