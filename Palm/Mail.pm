@@ -6,10 +6,113 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.3 2000-02-01 12:20:14 arensb Exp $
+# $Id: Mail.pm,v 1.4 2000-02-02 04:19:26 arensb Exp $
 
 package Palm::Mail;
-($VERSION) = '$Revision: 1.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+($VERSION) = '$Revision: 1.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
+
+=head1 NAME
+
+Palm::Mail - Handler for Palm Mail databases.
+
+=head1 SYNOPSIS
+
+    use Palm::Mail;
+
+=head1 DESCRIPTION
+
+The Mail PDB handler is a helper class for the Palm::PDB package. It
+parses Mail databases.
+
+=head2 AppInfo block
+
+    $pdb->{"appinfo"}{"renamed"}
+
+A scalar. I think this is a bitmap of category names that have changed
+since the last sync.
+
+    @{$pdb->{"appinfo"}{"categories"}}
+
+Array of category names.
+
+    @{$pdb->{"appinfo"}{"uniqueIDs"}}
+
+Array of category IDs. By convention, categories created on the Palm
+have IDs in the range 0-127, and categories created on the desktop
+have IDs in the range 128-255.
+
+    $pdb->{"appinfo"}{"lastUniqueID"}
+    $pdb->{"appinfo"}{"sortOrder"}
+    $pdb->{"appinfo"}{"unsent"}
+    $pdb->{"appinfo"}{"sigOffset"}
+
+I don't know what these are.
+
+=head2 Sort block
+
+    $pdb->{"sort"}
+
+This is a scalar, the raw data of the sort block.
+
+=head2 Records
+
+    $record = $pdb->{"records"}[N]
+
+    $record->{"year"}
+    $record->{"month"}
+    $record->{"day"}
+    $record->{"hour"}
+    $record->{"minute"}
+
+The message's timestamp.
+
+    $record->{"is_read"}
+
+This is defined and true iff the message has been read.
+
+    $record->{"has_signature"}
+
+For outgoing messages, this is defined and true iff the message should
+have a signature attached. The signature itself is stored in the
+"Saved Preferences.prc" database, and is of type "mail" with ID 2.
+
+    $record->{"confirm_read"}
+
+If this is defined and true, then the sender requests notification
+when the message has been read.
+
+    $record->{"confirm_delivery"}
+
+If this is defined and true, then the sender requests notification
+when the message has been delivered.
+
+    $record->{"priority"}
+
+An integer in the range 0-2, for high, normal, or low priority,
+respectively.
+
+    $record->{"addressing"}
+
+An integer in the range 0-2, indicating the addressing type: To, Cc,
+or Bcc respectively. I don't know what this means.
+
+    $record->{"from"}
+    $record->{"to"}
+    $record->{"cc"}
+    $record->{"bcc"}
+    $record->{"replyTo"}
+    $record->{"sentTo"}
+
+Strings, the various header fields.
+
+    $record->{"body"}
+
+A string, the body of the message.
+
+=head1 METHODS
+
+=cut
+#'
 
 use Palm::Raw();
 
@@ -23,6 +126,111 @@ sub import
 	&Palm::PDB::RegisterPDBHandlers(__PACKAGE__,
 		[ "mail", "DATA" ],
 		);
+}
+
+=head2 new
+
+  $pdb = new Palm::Mail;
+
+Create a new PDB, initialized with the various Palm::Mail fields
+and an empty record list.
+
+Use this method if you're creating a Mail PDB from scratch.
+
+=cut
+#'
+
+sub new
+{
+	my $classname	= shift;
+	my $self	= $classname->SUPER::new(@_);
+			# Create a generic PDB. No need to rebless it,
+			# though.
+
+	$self->{"name"} = "MailDB";	# Default
+	$self->{"creator"} = "mail";
+	$self->{"type"} = "DATA";
+	$self->{"attributes"}{"resource"} = 0;
+				# The PDB is not a resource database by
+				# default, but it's worth emphasizing,
+				# since MailDB is explicitly not a PRC.
+
+	# Initialize the AppInfo block
+	$self->{"appinfo"} = {
+		renamed		=> 0,	# Dunno what this is
+		categories	=> [],	# List of category names
+		uniqueIDs	=> [],	# List of category IDs
+# XXX		lastUniqueID	=> ?
+		sortOrder	=> undef,	# XXX - ?
+		unsent		=> undef,	# XXX - ?
+		sigOffset	=> 0,		# XXX - ?
+	};
+
+	# Make sure there are $numCategories categories
+	$#{$self->{"appinfo"}{"categories"}} = $numCategories-1;
+	$#{$self->{"appinfo"}{"uniqueIDs"}} = $numCategories-1;
+
+	# If nothing else, there should be an "Unfiled" category, with
+	# ID 0.
+	$self->{"appinfo"}{"categories"}[0] = "Unfiled";
+	$self->{"appinfo"}{"uniqueIDs"}[0] = 0;
+
+	$self->{"sort"} = undef;	# Empty sort block
+
+	$self->{"records"} = [];	# Empty list of records
+
+	return $self;
+}
+
+=head2 new_Record
+
+  $record = $pdb->new_Record;
+
+Creates a new Mail record, with blank values for all of the fields.
+
+Note: the time given by the C<year>, C<month>, C<day>, C<hour>, and
+C<minute> fields in the new record are initialized to the time when
+the record was created. They should be reset to the time when the
+message was sent.
+
+=cut
+
+sub new_Record
+{
+	my $classname = shift;
+	my $retval = $classname->SUPER::new_Record(@_);
+
+	# Set the date and time on this message to today and now. This
+	# is arguably bogus, since the Date: header on a message ought
+	# to represent the time when the message was sent, rather than
+	# the time when the user started composing it, but this is
+	# better than nothing.
+
+	($retval->{"year"},
+	 $retval->{"month"},
+	 $retval->{"day"},
+	 $retval->{"hour"},
+	 $retval->{"minute"}) = (localtime(time))[5,4,3,2,1];
+
+	$retval->{"is_read"} = 0;	# Message hasn't been read yet.
+
+	# No delivery service notification (DSN) by default.
+	$retval->{"confirm_read"} = 0;
+	$retval->{"confirm_delivery"} = 0;
+
+	$retval->{"priority"} = 1;	# Normal priority
+
+	$retval->{"addressing"} = 0;	# XXX - ?
+
+	# All header fields empty by default.
+	$retval->{"from"} = undef;
+	$retval->{"to"} = undef;
+	$retval->{"cc"} = undef;
+	$retval->{"bcc"} = undef;
+	$retval->{"replyTo"} = undef;
+	$retval->{"sentTo"} = undef;
+
+	$retval->{"body"} = "";
 }
 
 # ParseAppInfoBlock
@@ -297,104 +505,6 @@ sub PackRecord
 
 1;
 __END__
-
-=head1 NAME
-
-Palm::Mail - Handler for Palm Mail databases.
-
-=head1 SYNOPSIS
-
-    use Palm::Mail;
-
-=head1 DESCRIPTION
-
-The Mail PDB handler is a helper class for the Palm::PDB package. It
-parses Mail databases.
-
-=head2 AppInfo block
-
-    $pdb->{"appinfo"}{"renamed"}
-
-A scalar. I think this is a bitmap of category names that have changed
-since the last sync.
-
-    @{$pdb->{"appinfo"}{"categories"}}
-
-Array of category names.
-
-    @{$pdb->{"appinfo"}{"uniqueIDs"}}
-
-Array of category IDs. By convention, categories created on the Palm
-have IDs in the range 0-127, and categories created on the desktop
-have IDs in the range 128-255.
-
-    $pdb->{"appinfo"}{"lastUniqueID"}
-    $pdb->{"appinfo"}{"sortOrder"}
-    $pdb->{"appinfo"}{"unsent"}
-    $pdb->{"appinfo"}{"sigOffset"}
-
-I don't know what these are.
-
-=head2 Sort block
-
-    $pdb->{"sort"}
-
-This is a scalar, the raw data of the sort block.
-
-=head2 Records
-
-    $record = $pdb->{"records"}[N]
-
-    $record->{"year"}
-    $record->{"month"}
-    $record->{"day"}
-    $record->{"hour"}
-    $record->{"minute"}
-
-The message's timestamp.
-
-    $record->{"is_read"}
-
-This is defined and true iff the message has been read.
-
-    $record->{"has_signature"}
-
-For outgoing messages, this is defined and true iff the message should
-have a signature attached. The signature itself is stored in the
-"Saved Preferences.prc" database, and is of type "mail" with ID 2.
-
-    $record->{"confirm_read"}
-
-If this is defined and true, then the sender requests notification
-when the message has been read.
-
-    $record->{"confirm_delivery"}
-
-If this is defined and true, then the sender requests notification
-when the message has been delivered.
-
-    $record->{"priority"}
-
-An integer in the range 0-2, for high, normal, or low priority,
-respectively.
-
-    $record->{"addressing"}
-
-An integer in the range 0-2, indicating the addressing type: To, Cc,
-or Bcc respectively. I don't know what this means.
-
-    $record->{"from"}
-    $record->{"to"}
-    $record->{"cc"}
-    $record->{"bcc"}
-    $record->{"replyTo"}
-    $record->{"sentTo"}
-
-Strings, the various header fields.
-
-    $record->{"body"}
-
-A string, the body of the message.
 
 =head1 AUTHOR
 

@@ -2,13 +2,197 @@
 # 
 # Perl class for dealing with Palm DateBook databases. 
 #
-#	Copyright (C) 1999, Andrew Arensburger.
+#	Copyright (C) 1999, 2000, Andrew Arensburger.
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.2 1999-11-18 06:20:14 arensb Exp $
+# $Id: Datebook.pm,v 1.3 2000-02-02 04:19:12 arensb Exp $
 
 package Palm::Datebook;
+($VERSION) = '$Revision: 1.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+
+=head1 NAME
+
+Palm::Datebook - Handler for Palm DateBook databases.
+
+=head1 SYNOPSIS
+
+    use Palm::Datebook;
+
+=head1 DESCRIPTION
+
+The Datebook PDB handler is a helper class for the Palm::PDB package.
+It parses DateBook databases.
+
+=head2 AppInfo block
+
+    $pdb->{"appinfo"}{"renamed"}
+
+A scalar. I think this is a bitmap of category names that have changed
+since the last sync.
+
+    @{$pdb->{"appinfo"}{"categories"}}
+
+Array of category names.
+
+    @{$pdb->{"appinfo"}{"uniqueIDs"}}
+
+Array of category IDs. By convention, categories created on the Palm
+have IDs in the range 0-127, and categories created on the desktop
+have IDs in the range 128-255.
+
+    $pdb->{"appinfo"}{"lastUniqueID"}
+
+I don't know what this is.
+
+=head2 Sort block
+
+    $pdb->{"sort"}
+
+This is a scalar, the raw data of the sort block.
+
+=head2 Records
+
+    $record = $pdb->{"records"}[N]
+
+    $record->{"day"}
+    $record->{"month"}
+    $record->{"year"}
+
+The day, month and year of the event. For repeating events, this is
+the first date at which the event occurs.
+
+    $record->{"start_hour"}
+    $record->{"start_minute"}
+    $record->{"end_hour"}
+    $record->{"end_minute"}
+
+The start and end times of the event. For untimed events, all of these
+are 0xff.
+
+    $record->{"when_changed"}
+
+This is defined and true iff the "when info" for the record has
+changed. I don't know what this means.
+
+    $record->{"alarm"}{"advance"}
+    $record->{"alarm"}{"unit"}
+
+If the record has an alarm associated with it, the
+%{$record->{"alarm"}} hash exists. The "unit" subfield is an integer:
+0 for minutes, 1 for hours, 2 for days. The "advance" subfield
+specifies how many units before the event the alarm should ring.
+I<e.g.>, if "unit" is 1 and "advance" is 5, then the alarm will sound
+5 hours before the event.
+
+If "advance" is -1, then there is no alarm associated with this event.
+
+    %{$record->{"repeat"}}
+
+This has exists iff this is a repeating event.
+
+    $record->{"repeat"}{"type"}
+
+An integer which specifies the type of repeat:
+
+=over 4
+
+=item 0
+
+no repeat.
+
+=item 1
+
+a daily event, one that occurs every day.
+
+=item 2
+
+a weekly event, one that occurs every week on the same dayZ<>(s). An
+event may occur on several days every week, I<e.g.>, every Monday,
+Wednesday and Friday.
+
+For weekly events, the following fields are defined:
+
+    @{$record->{"repeat"}{"repeat_days"}}
+
+This is an array of 7 elements; each element is true iff the event
+occurs on the corresponding day. I don't know whether the array begins
+with Sunday, or with the start-of-week day as defined in the
+preferences.
+
+    $record->{"repeat"}{"start_of_week"}
+
+I'm not sure what this is, but the Datebook app appears to perform
+some hairy calculations involving this.
+
+=item 3
+
+a "monthly by day" event, I<e.g.>, one that occurs on the second
+Friday of every month.
+
+For "monthly by day" events, the following fields are defined:
+
+    $record->{"repeat"}{"weeknum"}
+
+The number of the week on which the event occurs. A value of 5 means
+that the event occurs on the last week of the month.
+
+    $record->{"repeat"}{"daynum"}
+
+An integer, the day of the week on which the event occurs. Again, I
+don't know whether 0 means Sunday, or the start-of-week day as defined
+in the preferences.
+
+=item 4
+
+a "monthly by date" event, I<e.g.>, one that occurs on the 12th of
+every month.
+
+=item 5
+
+a yearly event, I<e.g.>, one that occurs every year on December 25th.
+
+    $record->{"repeat"}{"frequency"}
+
+Specifies the frequency of the repeat. For instance, if the event is a
+daily one, and $record->{"repeat"}{"frequency"} is 3, then the event
+occurs every 3 days.
+
+=back
+
+    $record->{"repeat"}{"unknown"}
+
+I don't know what this is.
+
+    $record->{"repeat"}{"end_day"}
+    $record->{"repeat"}{"end_month"}
+    $record->{"repeat"}{"end_year"}
+
+The last day, month and year on which the event occurs.
+
+    @{$record->{"exceptions"}}
+    $day   = $record->{"exceptions"}[N][0]
+    $month = $record->{"exceptions"}[N][0]
+    $year  = $record->{"exceptions"}[N][0]
+
+If there are any exceptions to a repeating event, I<e.g.> a weekly
+meeting that was cancelled one time, then the
+@{$record->{"exceptions"}} array is defined.
+
+Each element in this array is a reference to an anonymous array with
+three elements: the day, month, and year of the exception.
+
+    $record->{"description"}
+
+A text string, the description of the event.
+
+    $record->{"note"}
+
+A text string, the note (if any) attached to the event.
+
+=head1 METHODS
+
+=cut
 
 use Palm::Raw();
 
@@ -22,6 +206,93 @@ sub import
 	&Palm::PDB::RegisterPDBHandlers(__PACKAGE__,
 		[ "date", "DATA" ],
 		);
+}
+
+=head2 new
+
+  $pdb = new Palm::Datebook;
+
+Create a new PDB, initialized with the various Palm::Datebook fields
+and an empty record list.
+
+=cut
+#'
+
+# new
+# Create a new Palm::Datebook database, and return it
+sub new
+{
+	my $classname	= shift;
+	my $self	= $classname->SUPER::new(@_);
+			# Create a generic PDB. No need to rebless it,
+			# though.
+
+	$self->{"name"} = "DatebookDB";	# Default
+	$self->{"creator"} = "date";
+	$self->{"type"} = "DATA";
+	$self->{"attributes"}{"resource"} = 0;
+				# The PDB is not a resource database by
+				# default, but it's worth emphasizing,
+				# since DatebookDB is explicitly not a PRC.
+	$self->{"appinfo"} = {
+		renamed		=> 0,	# Dunno what this is
+		categories	=> [],	# List of category names
+		uniqueIDs	=> [],	# List of category IDs
+# XXX		lastUniqueID	=> ?
+	};
+
+	# Make sure there are $numCategories categories
+	$#{$self->{"appinfo"}{"categories"}} = $numCategories-1;
+	$#{$self->{"appinfo"}{"uniqueIDs"}} = $numCategories-1;
+
+	# If nothing else, there should be an "Unfiled" category, with
+	# ID 0.
+	$self->{"appinfo"}{"categories"}[0] = "Unfiled";
+	$self->{"appinfo"}{"uniqueIDs"}[0] = 0;
+
+	$self->{"sort"} = undef;	# Empty sort block
+
+	$self->{"records"} = [];	# Empty list of records
+
+	return $self;
+}
+
+=head2 new_Record
+
+  $record = $pdb->new_Record;
+
+Creates a new Datebook record, with blank values for all of the fields.
+
+=cut
+
+sub new_Record
+{
+	my $classname = shift;
+	my $retval = $classname->SUPER::new_Record(@_);
+
+	# By default, the new record is an untimed event that occurs
+	# today.
+	($retval->{"day"},
+	 $retval->{"month"},
+	 $retval->{"year"}) = (localtime(time))[3, 4, 5];
+
+	$retval->{"start_hour"} =
+	$retval->{"start_minute"} =
+	$retval->{"end_hour"} =
+	$retval->{"end_minute"} = 0xff;
+
+	# Set the alarm to 10 minutes before the event.
+	# XXX - This should probably be customizable
+	$retval->{"alarm"}{"advance"} = 10;
+	$retval->{"alarm"}{"unit"} = 0;		# Minutes
+
+	# No repeat
+	# delete($retval->{"repeat"});
+
+	$retval->{"description"} = "";
+	$retval->{"note"} = undef;
+
+	return $retval;
 }
 
 # ParseAppInfoBlock
@@ -494,185 +765,6 @@ sub PackRecord
 
 1;
 __END__
-
-=head1 NAME
-
-Palm::Datebook - Handler for Palm DateBook databases.
-
-=head1 SYNOPSIS
-
-    use Palm::Datebook;
-
-=head1 DESCRIPTION
-
-The Datebook PDB handler is a helper class for the Palm::PDB package.
-It parses DateBook databases.
-
-=head2 AppInfo block
-
-    $pdb->{"appinfo"}{"renamed"}
-
-A scalar. I think this is a bitmap of category names that have changed
-since the last sync.
-
-    @{$pdb->{"appinfo"}{"categories"}}
-
-Array of category names.
-
-    @{$pdb->{"appinfo"}{"uniqueIDs"}}
-
-Array of category IDs. By convention, categories created on the Palm
-have IDs in the range 0-127, and categories created on the desktop
-have IDs in the range 128-255.
-
-    $pdb->{"appinfo"}{"lastUniqueID"}
-
-I don't know what this is.
-
-=head2 Sort block
-
-    $pdb->{"sort"}
-
-This is a scalar, the raw data of the sort block.
-
-=head2 Records
-
-    $record = $pdb->{"records"}[N]
-
-    $record->{"day"}
-    $record->{"month"}
-    $record->{"year"}
-
-The day, month and year of the event. For repeating events, this is
-the first date at which the event occurs.
-
-    $record->{"start_hour"}
-    $record->{"start_minute"}
-    $record->{"end_hour"}
-    $record->{"end_minute"}
-
-The start and end times of the event. For untimed events, all of these
-are 0xff.
-
-    $record->{"when_changed"}
-
-This is defined and true iff the "when info" for the record has
-changed. I don't know what this means.
-
-    $record->{"alarm"}{"advance"}
-    $record->{"alarm"}{"unit"}
-
-If the record has an alarm associated with it, the
-%{$record->{"alarm"}} hash exists. The "unit" subfield is an integer:
-0 for minutes, 1 for hours, 2 for days. The "advance" subfield
-specifies how many units before the event the alarm should ring.
-I<e.g.>, if "unit" is 1 and "advance" is 5, then the alarm will sound
-5 hours before the event.
-
-If "advance" is -1, then there is no alarm associated with this event.
-
-    %{$record->{"repeat"}}
-
-This has exists iff this is a repeating event.
-
-    $record->{"repeat"}{"type"}
-
-An integer which specifies the type of repeat:
-
-=over 4
-
-=item 0
-
-no repeat.
-
-=item 1
-
-a daily event, one that occurs every day.
-
-=item 2
-
-a weekly event, one that occurs every week on the same dayZ<>(s). An
-event may occur on several days every week, I<e.g.>, every Monday,
-Wednesday and Friday.
-
-For weekly events, the following fields are defined:
-
-    @{$record->{"repeat"}{"repeat_days"}}
-
-This is an array of 7 elements; each element is true iff the event
-occurs on the corresponding day. I don't know whether the array begins
-with Sunday, or with the start-of-week day as defined in the
-preferences.
-
-    $record->{"repeat"}{"start_of_week"}
-
-I'm not sure what this is, but the Datebook app appears to perform
-some hairy calculations involving this.
-
-=item 3
-
-a "monthly by day" event, I<e.g.>, one that occurs on the second
-Friday of every month.
-
-For "monthly by day" events, the following fields are defined:
-
-    $record->{"repeat"}{"weeknum"}
-
-The number of the week on which the event occurs. A value of 5 means
-that the event occurs on the last week of the month.
-
-    $record->{"repeat"}{"daynum"}
-
-An integer, the day of the week on which the event occurs. Again, I
-don't know whether 0 means Sunday, or the start-of-week day as defined
-in the preferences.
-
-=item 4
-
-a "monthly by date" event, I<e.g.>, one that occurs on the 12th of
-every month.
-
-=item 5
-
-a yearly event, I<e.g.>, one that occurs every year on December 25th.
-
-    $record->{"repeat"}{"frequency"}
-
-Specifies the frequency of the repeat. For instance, if the event is a
-daily one, and $record->{"repeat"}{"frequency"} is 3, then the event
-occurs every 3 days.
-
-=back
-
-    $record->{"repeat"}{"unknown"}
-
-I don't know what this is.
-
-    $record->{"repeat"}{"end_day"}
-    $record->{"repeat"}{"end_month"}
-    $record->{"repeat"}{"end_year"}
-
-The last day, month and year on which the event occurs.
-
-    @{$record->{"exceptions"}}
-    $day   = $record->{"exceptions"}[N][0]
-    $month = $record->{"exceptions"}[N][0]
-    $year  = $record->{"exceptions"}[N][0]
-
-If there are any exceptions to a repeating event, I<e.g.> a weekly
-meeting that was cancelled one time, then the
-@{$record->{"exceptions"}} array is defined.
-
-Each element in this array is a reference to an anonymous array with
-three elements: the day, month, and year of the exception.
-
-    $record->{"description"}
-
-A text string, the description of the event.
-
-    $record->{"note"}
-
-A text string, the note (if any) attached to the event.
 
 =head1 AUTHOR
 
