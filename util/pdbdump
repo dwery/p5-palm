@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 2.2 2000-08-24 04:29:34 arensb Exp $
+# $Id: pdbdump,v 2.3 2000-09-16 23:53:36 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -17,7 +17,7 @@ use Palm::ToDo;
 
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
-$VERSION = (qw( $Revision: 2.2 $ ))[1];
+$VERSION = (qw( $Revision: 2.3 $ ))[1];
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
@@ -218,11 +218,8 @@ EOT
 		&_load_rec_index($self, \*PDB);
 	}
 
-	# Read the two NUL bytes
-	read PDB, $buf, 2;
-	$self->{"2NULs"} = $buf;
-
-	print "The two NULs: [", $self->{"2NULs"}, "]\n\n";
+	# Ignore the two NUL bytes that are usually here. We'll seek()
+	# around them later.
 
 	# Read AppInfo block, if it exists
 	if ($self->{_appinfo_offset} != 0)
@@ -379,12 +376,18 @@ sub _load_appinfo_block
 
 	# Sanity check: make sure we're positioned at the beginning of
 	# the AppInfo block
-	if (tell($fh) != $pdb->{_appinfo_offset})
+	if (tell($fh) > $pdb->{_appinfo_offset})
 	{
 		die "Bad AppInfo offset: expected ",
 			sprintf("0x%08x", $pdb->{_appinfo_offset}),
 			", but I'm at ",
 			tell($fh), "\n";
+	}
+
+	# Seek to the right place, if necessary
+	if (tell($fh) != $pdb->{_appinfo_offset})
+	{
+		seek PDB, $pdb->{_appinfo_offset}, 0;
 	}
 
 	# There's nothing that explicitly gives the size of the
@@ -442,12 +445,18 @@ sub _load_sort_block
 
 	# Sanity check: make sure we're positioned at the beginning of
 	# the sort block
-	if (tell($fh) != $pdb->{_sort_offset})
+	if (tell($fh) > $pdb->{_sort_offset})
 	{
 		die "Bad sort block offset: expected ",
 			sprintf("0x%08x", $pdb->{_sort_offset}),
 			", but I'm at ",
 			tell($fh), "\n";
+	}
+
+	# Seek to the right place, if necessary
+	if (tell($fh) != $pdb->{_sort_offset})
+	{
+		seek PDB, $pdb->{_sort_offset}, 0;
 	}
 
 	# There's nothing that explicitly gives the size of the sort
@@ -503,13 +512,19 @@ sub _load_records
 
 		# Sanity check: make sure we're where we think we
 		# should be.
-		if (tell($fh) != $pdb->{_index}[$i]{offset})
+		if (tell($fh) > $pdb->{_index}[$i]{offset})
 		{
 			die "Bad offset for record $i: expected ",
 				sprintf("0x%08x",
 					$pdb->{_index}[$i]{offset}),
 				" but it's at ",
-				sprintf("0x%08x", tell($fh)), "\n";
+				sprintf("[0x%08x]", tell($fh)), "\n";
+		}
+
+		# Seek to the right place, if necessary
+		if (tell($fh) != $pdb->{_index}[$i]{offset})
+		{
+			seek PDB, $pdb->{_index}[$i]{offset}, 0;
 		}
 
 		# Compute the length of the record: the last record
