@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.16 2002-05-09 15:08:49 arensb Exp $
+# $Id: Address.pm,v 1.17 2002-09-03 17:48:15 azummo Exp $
 
 use strict;
 package Palm::Address;
@@ -18,7 +18,7 @@ use vars qw( $VERSION @ISA
 	%fieldMapBits );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.16 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.17 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
@@ -633,6 +633,10 @@ sub PackRecord
 		{
 			$fieldMap |= $fieldMapBits{$fieldname};
 		}
+		else 
+		{ 
+			$record->{fields}{$fieldname} = ""; 
+		} 
 	}
 
 	$retval .= pack("N", $fieldMap);
