@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ZirePhoto.pm,v 1.4 2004-06-22 03:45:02 christophe Exp $
+# $Id: ZirePhoto.pm,v 1.5 2004-06-26 22:52:41 christophe Exp $
 
 
 use strict;
@@ -16,7 +16,7 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.4 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.5 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @ISA = qw( Palm::Raw );
 
@@ -42,6 +42,11 @@ The AppInfo block begins with standard category support. See
 L<Palm::StdAppInfo> for details.
 
 =head2 Records
+
+Records may contain no data fields. This occurs when the record has been
+marked deleted on the Palm, presumably in order to save space (Photo has no
+provision for archiving when deleting and the separate database storage for
+the actual images would make it pointless anyways).
 
     $record = $pdb->{records}[N]
 
