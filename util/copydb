@@ -1,16 +1,13 @@
 #!/usr/bin/perl
+# Utility to copy the contents of a PDB.
+# $Id: copydb,v 1.2 1999-11-18 05:21:01 arensb Exp $
 use strict;
-use lib qw(./lib .);
 
-use Palm::PDB::Raw;
-use Palm::PDB::Memo;
-use Palm::PDB::Address;
-use Palm::PDB::Datebook;
-use Palm::PDB::Mail;
-
-#  &Palm::PDB::RegisterPRCHandlers("Palm::PDB::Raw",
-#  	[ "", "" ]
-#  	);
+use Palm::Raw;
+use Palm::Memo;
+use Palm::Address;
+use Palm::Datebook;
+use Palm::Mail;
 
 my $pdb = new Palm::PDB;
 
