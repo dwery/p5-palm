@@ -1,0 +1,4 @@
+- Add PRC support. Unlike PDBs, the thing to do here is to have
+  registered handlers for various resource types.
+- Add methods for adding, removing categories, when the AppInfo block
+  uses the standard layout.
