@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 3.2 2000-09-25 05:06:05 arensb Exp $
+# $Id: pdbdump,v 3.3 2001-02-20 11:12:27 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -17,13 +17,13 @@ use Palm::ToDo;
 
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
-$VERSION = (qw( $Revision: 3.2 $ ))[1];
+$VERSION = (qw( $Revision: 3.3 $ ))[1];
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
 
 &Palm::PDB::RegisterPRCHandlers("Palm::Raw",
-	[ "", "" ],
+	[ "", "" ]
 	);
 
 $hexdump = 1;			# By default, print hex dumps of everything
@@ -547,11 +547,12 @@ sub _load_records
 		# should be.
 		if (tell($fh) > $pdb->{_index}[$i]{offset})
 		{
-			die "Bad offset for record $i: expected ",
-				sprintf("0x%08x",
-					$pdb->{_index}[$i]{offset}),
-				" but it's at ",
-				sprintf("[0x%08x]", tell($fh)), "\n";
+# XXX - The two NULs are really optional.
+#			die "Bad offset for record $i: expected ",
+#				sprintf("0x%08x",
+#					$pdb->{_index}[$i]{offset}),
+#				" but it's at ",
+#				sprintf("[0x%08x]", tell($fh)), "\n";
 		}
 
 		# Seek to the right place, if necessary
