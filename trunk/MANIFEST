@@ -1,6 +1,7 @@
 ChangeLog
 MANIFEST
 README
+TODO
 Makefile.PL
 test.pl
 Palm/Address.pm
@@ -9,6 +10,7 @@ Palm/Mail.pm
 Palm/Memo.pm
 Palm/PDB.pm
 Palm/Raw.pm
+Palm/StdAppInfo.pm
 Palm/ToDo.pm
 util/copydb
 util/dumpdb
