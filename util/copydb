@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+use strict;
+use lib qw(./lib .);
+
+use Palm::PDB::Raw;
+use Palm::PDB::Memo;
+use Palm::PDB::Address;
+use Palm::PDB::Datebook;
+use Palm::PDB::Mail;
+
+#  &Palm::PDB::RegisterPRCHandlers("Palm::PDB::Raw",
+#  	[ "", "" ]
+#  	);
+
+my $pdb = new Palm::PDB;
+
+$pdb->Load($ARGV[0]);
+
+$pdb->Write("foo.pdb");
