@@ -6,15 +6,21 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.6 2000-02-02 04:18:40 arensb Exp $
+# $Id: Address.pm,v 1.7 2000-04-24 09:56:09 arensb Exp $
 
+use strict;
 package Palm::Address;
-($VERSION) = '$Revision: 1.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
+use Palm::Raw();
+use Palm::StdAppInfo;
+
+use vars qw( $VERSION @ISA
+	$numFieldLabels $addrLabelLength @phoneLabels @countries );
+
+$VERSION = (qw( $Revision: 1.7 $ ))[1];
+@ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
 # a pain in the ass to deal with correctly.
-
-# XXX - Methods for adding, removing categories.
 
 =head1 NAME
 
@@ -31,20 +37,10 @@ It parses AddressBook databases.
 
 =head2 AppInfo block
 
-    $pdb->{"appinfo"}{"renamed"}
+The AppInfo block begins with standard category support. See
+L<Palm::StdAppInfo> for details.
 
-A scalar. I think this is a bitmap of category names that have changed
-since the last sync.
-
-    @{$pdb->{"appinfo"}{"categories"}}
-
-Array of category names.
-
-    @{$pdb->{"appinfo"}{"uniqueIDs"}}
-
-Array of category IDs. By convention, categories created on the Palm
-have IDs in the range 0-127, and categories created on the desktop
-have IDs in the range 128-255.
+Other fields include:
 
     $pdb->{"appinfo"}{"lastUniqueID"}
     $pdb->{"appinfo"}{"dirtyFields"}
@@ -154,15 +150,8 @@ I don't know what this is.
 =cut
 #'
 
-use Palm::Raw();
-
-@ISA = qw( Palm::Raw );
-
-$numCategories = 16;		# Number of categories in AppInfo block
-$categoryLength = 16;		# Length of category names
 $addrLabelLength = 16;
 $numFieldLabels = 22;
-$numFields = 19;
 
 @phoneLabels = (
 	"Work",
@@ -240,10 +229,6 @@ sub new
 
 	# Initialize the AppInfo block
 	$self->{"appinfo"} = {
-		renamed		=> 0,	# Dunno what this is
-		categories	=> [],	# List of category names
-		uniqueIDs	=> [],	# List of category IDs
-# XXX		lastUniqueID	=> ?
 		fieldLabels	=> {
 			# Displayed labels for the various fields in
 			# each address record.
@@ -281,14 +266,8 @@ sub new
 		misc		=> 0,
 	};
 
-	# Make sure there are $numCategories categories
-	$#{$self->{"appinfo"}{"categories"}} = $numCategories-1;
-	$#{$self->{"appinfo"}{"uniqueIDs"}} = $numCategories-1;
-
-	# If nothing else, there should be an "Unfiled" category, with
-	# ID 0.
-	$self->{"appinfo"}{"categories"}[0] = "Unfiled";
-	$self->{"appinfo"}{"uniqueIDs"}[0] = 0;
+	# Add the standard AppInfo block stuff
+	&Palm::StdAppInfo::seed_StdAppInfo($self->{"appinfo"});
 
 	# Give the PDB a blank sort block
 	$self->{"sort"} = undef;
@@ -304,6 +283,7 @@ sub new
   $record = $pdb->new_Record;
 
 Creates a new Address record, with blank values for all of the fields.
+The AppInfo block will contain only an "Unfiled" category, with ID 0.
 
 =cut
 
@@ -354,73 +334,53 @@ sub new_Record
 
 # ParseAppInfoBlock
 # Parse the AppInfo block for Address databases.
-# XXX - There appear to be two extra bytes at the end of the AppInfo
-# block, unaccounted for by the header file. Alignment?
-
+#
 # The AppInfo block has the following overall structure:
-#	1: renamedCategories
-#	2: category labels
-#	3: category IDs
-#	4: last unique category ID
-#	5: 3 bytes of padding
-#	6: dirty field labels
-#	7: field labels
-#	8: country
-#	9: misc
-# 1: I think this is a bit field that indicates which category labels
-#    have changed (i.e., which categories have been renamed). This
-#    seems fairly standard.
-# 2: An array of category names (16-character strings, NUL-terminated).
-# 3: Not sure what this is.
-# 4: Not sure what this is. Probably something to help in picking the
-#    next category ID or something.
-# 5: Padding.
-# 6: I think this is like (1), a bit field of which field labels have
-#    changed (i.e., which fields have been renamed).
-# 7: An array of field labels (16-character strings, NUL-terminated).
-# 8: The code for the country for which the labels were designed.
-# 9: 7 reserved bits followed by one flag that's set if the database
+#	1: Categories (see StdAppInfo.pm)
+#	2: reserved word
+#	3: dirty field labels
+#	4: field labels
+#	5: country
+#	6: misc
+# 3: I think this is similar to the first part of the standard AppInfo
+#    blocka, a bit field of which field labels have changed (i.e.,
+#    which fields have been renamed).
+# 4: An array of field labels (16-character strings, NUL-terminated).
+# 5: The code for the country for which the labels were designed.
+# 6: 7 reserved bits followed by one flag that's set if the database
 #    should be sorted by company.
-
 sub ParseAppInfoBlock
 {
 	my $self = shift;
 	my $data = shift;
-	my $renamed;
-	my %renamedCategories;
-	my @labels;
-	my @uniqueIDs;
-	my $lastUniqueID;
 	my $dirtyFields;
-	my %dirtyFields = ();
-	my @fieldlabels;
+	my @fieldLabels;
 	my $country;
 	my $misc;
 
-	my $unpackstr =		# Argument to unpack(), since it's hairy
-		"n" .		# Renamed categories
-		"a$categoryLength" x $numCategories .
-				# Category labels
-		"C" x $numCategories .
-				# Category IDs
-		"C" .		# Last unique ID
-		"x3" .		# Padding
+	my $i;
+	my $appinfo = {};
+	my $std_len;
+
+	# Get the standard parts of the AppInfo block
+	$std_len = &Palm::StdAppInfo::parse_StdAppInfo($appinfo, $data);
+
+	$data = substr $data, $std_len;		# Remove the parsed part
+
+	# Get the rest of the AppInfo block
+	my $unpackstr =		# Argument to unpack()
+		"x2" .		# Reserved
 		"N" .		# Dirty flags
 		"a$addrLabelLength" x $numFieldLabels .
 				# Address labels
 		"C" .		# Country
 		"C";		# Misc
-	my $i;
-	my $appinfo = {};
 
-	($renamed, @labels[0..($numCategories-1)],
-	 @uniqueIDs[0..($numCategories-1)], $lastUniqueID, $dirtyFields,
-	 @fieldLabels[0..($numFieldLabels-1)], $country, $misc) =
+	($dirtyFields,
+	 @fieldLabels[0..($numFieldLabels-1)],
+	 $country,
+	 $misc) =
 		unpack $unpackstr, $data;
-	for (@labels)
-	{
-		s/\0.*$//;	# Trim at NUL
-	}
 	for (@fieldLabels)
 	{
 		s/\0.*$//;	# Trim everything after the first NUL
@@ -428,10 +388,6 @@ sub ParseAppInfoBlock
 				# have something like "Foo\0om 1"
 	}
 
-	$appinfo->{"renamed"} = $renamed;
-	$appinfo->{"categories"} = [ @labels ];
-	$appinfo->{"uniqueIDs"} = [ @uniqueIDs ];
-	$appinfo->{"lastUniqueID"} = $lastUniqueID;
 	$appinfo->{"dirtyFields"} = $dirtyFields;
 	$appinfo->{"fieldLabels"} = {
 		name		=> $fieldLabels[0],
@@ -469,21 +425,11 @@ sub PackAppInfoBlock
 	my $retval;
 	my $i;
 
-	$retval = pack("n", $self->{"appinfo"}{"renamed"});
-	for ($i = 0; $i < $numCategories; $i++)
-	{
-		$retval .= pack("a$categoryLength",
-				$self->{"appinfo"}{"categories"}[$i]);
-	}
+	# Pack the standard part of the AppInfo block
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{"appinfo"});
 
-	for ($i = 0; $i < $numCategories; $i++)
-	{
-		$retval .= pack("C", $self->{"appinfo"}{"uniqueIDs"}[$i]);
-	}
-
-	$retval .= pack("C x3 N",
-		$self->{"appinfo"}{"lastUniqueID"},
-		$self->{"appinfo"}{"dirtyFields"});
+	# And the application-specific stuff
+	$retval .= pack("x2 N", $self->{"appinfo"}{"dirtyFields"});
 	$retval .= pack("a$addrLabelLength" x $numFieldLabels,
 		$self->{"appinfo"}{"fieldLabels"}{"name"},
 		$self->{"appinfo"}{"fieldLabels"}{"firstName"},
@@ -724,6 +670,8 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 =head1 SEE ALSO
 
 Palm::PDB(1)
+
+Palm::StdAppInfo(1)
 
 =head1 BUGS
 

@@ -6,10 +6,17 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.3 2000-02-02 04:19:12 arensb Exp $
+# $Id: Datebook.pm,v 1.4 2000-04-24 09:58:23 arensb Exp $
 
+use strict;
 package Palm::Datebook;
-($VERSION) = '$Revision: 1.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
+use Palm::Raw();
+
+use vars qw( $VERSION @ISA );
+
+$VERSION = (qw( $Revision: 1.4 $ ))[1];
+@ISA = qw( Palm::Raw Palm::StdAppInfo );
+
 
 =head1 NAME
 
@@ -26,24 +33,8 @@ It parses DateBook databases.
 
 =head2 AppInfo block
 
-    $pdb->{"appinfo"}{"renamed"}
-
-A scalar. I think this is a bitmap of category names that have changed
-since the last sync.
-
-    @{$pdb->{"appinfo"}{"categories"}}
-
-Array of category names.
-
-    @{$pdb->{"appinfo"}{"uniqueIDs"}}
-
-Array of category IDs. By convention, categories created on the Palm
-have IDs in the range 0-127, and categories created on the desktop
-have IDs in the range 128-255.
-
-    $pdb->{"appinfo"}{"lastUniqueID"}
-
-I don't know what this is.
+The AppInfo block begins with standard category support. See
+L<Palm::StdAppInfo> for details.
 
 =head2 Sort block
 
@@ -193,13 +184,7 @@ A text string, the note (if any) attached to the event.
 =head1 METHODS
 
 =cut
-
-use Palm::Raw();
-
-@ISA = qw( Palm::Raw );
-
-$numCategories = 16;		# Number of categories in AppInfo block
-$categoryLength = 16;		# Length of category names
+#'
 
 sub import
 {
@@ -234,21 +219,10 @@ sub new
 				# The PDB is not a resource database by
 				# default, but it's worth emphasizing,
 				# since DatebookDB is explicitly not a PRC.
-	$self->{"appinfo"} = {
-		renamed		=> 0,	# Dunno what this is
-		categories	=> [],	# List of category names
-		uniqueIDs	=> [],	# List of category IDs
-# XXX		lastUniqueID	=> ?
-	};
-
-	# Make sure there are $numCategories categories
-	$#{$self->{"appinfo"}{"categories"}} = $numCategories-1;
-	$#{$self->{"appinfo"}{"uniqueIDs"}} = $numCategories-1;
-
-	# If nothing else, there should be an "Unfiled" category, with
-	# ID 0.
-	$self->{"appinfo"}{"categories"}[0] = "Unfiled";
-	$self->{"appinfo"}{"uniqueIDs"}[0] = 0;
+	$self->{"appinfo"} = Palm::StdAppInfo->newStdAppInfo();
+					# Standard AppInfo block
+	$self->{"appinfo"}{"start_of_week"} = 0;
+					# XXX - This is bogus
 
 	$self->{"sort"} = undef;	# Empty sort block
 
@@ -302,51 +276,25 @@ sub ParseAppInfoBlock
 {
 	my $self = shift;
 	my $data = shift;
-	my $renamed;		# Renamed categories
-	my @labels;		# Category labels
-	my @uniqueIDs;		# Category IDs
-	my $lastUniqueID;
 	my $startOfWeek;
-	my $unpackstr =		# Argument to unpack(), since it's hairy
-		"n" .			# Renamed categories
-		"a$categoryLength" x $numCategories .
-					# Category names
-		"C" x $numCategories .	# Category IDs
-		"C" .			# Last unique ID
-		"x3" .			# Padding
-		"C";			# Start of week
 	my $i;
 	my $appinfo = {};
+	my $std_len;
 
-	($renamed, @labels[0..($numCategories-1)],
-	 @uniqueIDs[0..($numCategories-1)], $lastUniqueID, $startOfWeek) =
-		unpack $unpackstr, $data;
+	# Get the standard parts of the AppInfo block
+	$std_len = &Palm::StdAppInfo::parse_StdAppInfo($appinfo, $data);
 
-	for (@labels)
-	{
-		s/\0.*//;		# Trim at NUL
-	}
+	$data = substr $data, $std_len;		# Remove the parsed part
 
-#  print "AppInfo block:\n";
-#  printf "\trenamed: 0x%02x\n", $renamed;
-#  print "\tCategories:\n\t\t[", join("]\n\t\t[", @labels), "]\n";
-#  print "\tCategory IDs:\n\t\t[", join("]\n\t\t[", @uniqueIDs), "]\n";
-#  print "\tLast unique ID: [$lastUniqueID]\n";
-#  print "\tStart of week: [$startOfWeek]\n";
+	# Get the rest of the AppInfo block
+	my $unpackstr =		# Argument to unpack(), since it's hairy
+		"x2" .			# Padding
+		"C";			# Start of week
 
-	for (@fieldLabels)
-	{
-		s/\0.*$//;	# Trim everything after the first NUL
-				# (when renaming custom fields, might
-				# have something like "Foo\0om 1"
-	}
+	# XXX - This is actually "sortOrder". Dunno what that is,
+	# though.
+	($startOfWeek) = unpack $unpackstr, $data;
 
-	$appinfo->{"renamed"} = $renamed;
-	$appinfo->{"categories"} = [ @labels ];
-	$appinfo->{"uniqueIDs"} = [ @uniqueIDs ];
-	$appinfo->{"lastUniqueID"} = $lastUniqueID;
-
-	# The labels exist, but they don't appear to be used.
 	$appinfo->{"start_of_week"} = $startOfWeek;
 
 	return $appinfo;
@@ -357,18 +305,11 @@ sub PackAppInfoBlock
 	my $self = shift;
 	my $retval;
 
-	$retval = pack("n", $self->{"appinfo"}{"renamed"});
-	for (@{$self->{"appinfo"}{"categories"}})
-	{
-		$retval .= pack("a$categoryLength", $_);
-	}
-	for (@{$self->{"appinfo"}{"uniqueIDs"}})
-	{
-		$retval .= pack("C", $_);
-	}
-	$retval .= pack("C x3 C x1",
-		$self->{"appinfo"}{"lastUniqueID"},
-		$self->{"appinfo"}{"start_of_week"});
+	# Pack the standard part of the AppInfo block
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{"appinfo"});
+
+	# And the application-specific stuff
+	$retval .= pack("x2 C x", $self->{"appinfo"}{"start_of_week"});
 
 	return $retval;
 }
@@ -428,20 +369,6 @@ sub ParseRecord
 
 	$record{"other_flags"} = $flags & 0x03ff;
 
-#  print "\tStart hour: [$startHour]\n";
-#  print "\tStart minute: [$startMinute]\n";
-#  print "\tEnd hour: [$endHour]\n";
-#  print "\tEnd minute: [$endMinute]\n";
-#  print "\tDate: raw [$rawDate] ($day/$month/$year)\n";
-#  printf "\tFlags: 0x%02x:", $flags;
-#  print " WHEN" if $when_changed;
-#  print " ALARM" if $have_alarm;
-#  print " REPEAT" if $have_repeat;
-#  print " NOTE" if $have_note;
-#  print " EXCEPTIONS" if $have_exceptions;
-#  print " DESC" if $have_description;
-#  print "\n";
-
 	if ($when_changed)
 	{
 		$record{"when_changed"} = 1;
@@ -452,11 +379,8 @@ sub ParseRecord
 		my $advance;
 		my $adv_unit;
 
-#  print "    Alarm:\n";
 		($advance, $adv_unit) = unpack "cC", $data;
 		$data = substr $data, 2;	# Chop off alarm data
-#  print "\tAlarm advance: [$advance]\n";
-#  print "\tAdvance unit: [$adv_unit] (", ("Minutes", "Hours", "Days")[$adv_unit], ")\n";
 
 		$record{"alarm"}{"advance"} = $advance;
 		$record{"alarm"}{"unit"} = $adv_unit;
@@ -471,7 +395,6 @@ sub ParseRecord
 		my $repeatStartOfWeek;
 		my $unknown;
 
-#  print "    Repeat:\n";
 		($type, $endDate, $frequency, $repeatOn, $repeatStartOfWeek,
 		 $unknown) =
 			unpack "Cx n C C C C", $data;
@@ -479,11 +402,6 @@ sub ParseRecord
 
 		$record{"repeat"}{"type"} = $type;
 		$record{"repeat"}{"unknown"} = $unknown;
-#  printf "unknown == 0x%02x [%c]\n", $record{"repeat"}{"unknown"}, $record{"repeat"}{"unknown"};
-
-#  print "\tType: [$type] (", ("none", "Daily", "Weekly", "Monthly by day", "Monthly by date", "Yearly")[$type], ")\n";
-#  print "\tEnd hour: [$endHour]\n";
-#  print "\tEnd minute: [$endMinute]\n";
 
 		if ($endDate != 0xffff)
 		{
@@ -495,16 +413,11 @@ sub ParseRecord
 			$endMonth = ($endDate >> 5) & 0x000f;	# 4 bits
 			$endYear  = ($endDate >> 9) & 0x007f;	# 7 bits (years
 			$endYear += 1904;			# since 1904)
-#  print "\tEnd date: [$endDate] ($endDay/$endMonth/$endYear)\n";
 
 			$record{"repeat"}{"end_day"} = $endDay;
 			$record{"repeat"}{"end_month"} = $endMonth;
 			$record{"repeat"}{"end_year"} = $endYear;
 		}
-
-#  print "\tFrequency: [$frequency]\n";
-#  print "\tRepeat on: [$repeatOn]\n";
-#  print "\tRepeat start of week: [$repeatStartOfWeek]\n";
 
 		$record{"repeat"}{"frequency"} = $frequency;
 		if ($type == 2)
@@ -547,14 +460,10 @@ sub ParseRecord
 		my $numExceptions;
 		my @exceptions;
 
-#  print "    Exceptions:\n";
-#  print "      Raw: [$data]\n";
 		$numExceptions = unpack "n", $data;
 		$data = substr $data, 2;
 		@exceptions = unpack "n" x $numExceptions, $data;
 		$data = substr $data, 2 * $numExceptions;
-
-#  print "\t# of exceptions: [$numExceptions]\n";
 
 		my $exception;
 		foreach $exception (@exceptions)
@@ -567,7 +476,6 @@ sub ParseRecord
 			$month = ($exception >> 5) & 0x000f;
 			$year  = ($exception >> 9) & 0x007f;
 			$year += 1904;
-#  print "\tException: [$exception] ($day/$month/$year)\n";
 
 			push @{$record{"exceptions"}},
 				[ $day, $month, $year ];
@@ -581,7 +489,6 @@ sub ParseRecord
 		my $description;
 
 		$description = shift @fields;
-#  print "\tDescription: [$description]\n";
 		$record{"description"} = $description;
 	}
 
@@ -590,11 +497,8 @@ sub ParseRecord
 		my $note;
 
 		$note = shift @fields;
-#  print "\tNote: [$note]\n";
 		$record{"note"} = $note;
 	}
-
-#  print "\tLeftover fields: [", join("] [", @fields), "]\n";
 
 	return \%record;
 }
@@ -745,7 +649,6 @@ sub PackRecord
 		$note = $record->{"note"} . "\0";
 	}
 
-#  printf "flags == 0x%04x\n", $flags;
 	$retval = pack "C C C C n n",
 		$record->{"start_hour"},
 		$record->{"start_minute"},
@@ -772,6 +675,8 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 
 =head1 SEE ALSO
 
-Palm::PDB(1)
+Palm::PDB(3)
+
+Palm::StdAppInfo(3)
 
 =cut

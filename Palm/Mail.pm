@@ -6,10 +6,16 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.5 2000-04-20 05:42:22 arensb Exp $
+# $Id: Mail.pm,v 1.6 2000-04-24 09:59:15 arensb Exp $
 
+use strict;
 package Palm::Mail;
-($VERSION) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+use Palm::Raw();
+use Palm::StdAppInfo;
+use vars qw( $VERSION @ISA );
+
+$VERSION = (qw( $Revision: 1.6 $ ) )[1];
+@ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
 
@@ -26,22 +32,11 @@ parses Mail databases.
 
 =head2 AppInfo block
 
-    $pdb->{"appinfo"}{"renamed"}
+The AppInfo block begins with standard category support. See
+L<Palm::StdAppInfo> for details.
 
-A scalar. I think this is a bitmap of category names that have changed
-since the last sync.
+Other fields include:
 
-    @{$pdb->{"appinfo"}{"categories"}}
-
-Array of category names.
-
-    @{$pdb->{"appinfo"}{"uniqueIDs"}}
-
-Array of category IDs. By convention, categories created on the Palm
-have IDs in the range 0-127, and categories created on the desktop
-have IDs in the range 128-255.
-
-    $pdb->{"appinfo"}{"lastUniqueID"}
     $pdb->{"appinfo"}{"sortOrder"}
     $pdb->{"appinfo"}{"unsent"}
     $pdb->{"appinfo"}{"sigOffset"}
@@ -115,13 +110,6 @@ A string, the body of the message.
 =cut
 #'
 
-use Palm::Raw();
-
-@ISA = qw( Palm::Raw );
-
-$numCategories = 16;		# Number of categories in AppInfo block
-$categoryLength = 16;		# Length of category names
-
 sub import
 {
 	&Palm::PDB::RegisterPDBHandlers(__PACKAGE__,
@@ -158,23 +146,13 @@ sub new
 
 	# Initialize the AppInfo block
 	$self->{"appinfo"} = {
-		renamed		=> 0,	# Dunno what this is
-		categories	=> [],	# List of category names
-		uniqueIDs	=> [],	# List of category IDs
-# XXX		lastUniqueID	=> ?
 		sortOrder	=> undef,	# XXX - ?
 		unsent		=> undef,	# XXX - ?
 		sigOffset	=> 0,		# XXX - ?
 	};
 
-	# Make sure there are $numCategories categories
-	$#{$self->{"appinfo"}{"categories"}} = $numCategories-1;
-	$#{$self->{"appinfo"}{"uniqueIDs"}} = $numCategories-1;
-
-	# If nothing else, there should be an "Unfiled" category, with
-	# ID 0.
-	$self->{"appinfo"}{"categories"}[0] = "Unfiled";
-	$self->{"appinfo"}{"uniqueIDs"}[0] = 0;
+	# Add the standard AppInfo block stuff
+	&Palm::StdAppInfo::seed_StdAppInfo($self->{"appinfo"});
 
 	$self->{"sort"} = undef;	# Empty sort block
 
@@ -240,59 +218,29 @@ sub ParseAppInfoBlock
 {
 	my $self = shift;
 	my $data = shift;
-	my $renamed;		# Renamed categories;
-	my @labels;		# Category labels
-	my @uniqueIDs;
-	my $lastUniqueID;
 	my $dirtyAppInfo;
 	my $sortOrder;
 	my $unsent;
 	my $sigOffset;		# XXX - Offset of signature?
-#  my $padding;
-#  my $extra;
+	my $appinfo = {};
+	my $std_len;
 
-	my $unpackstr =		# Argument to unpack(), since it's hairy
-		"n" .		# Renamed categories
-		"a$categoryLength" x $numCategories .
-				# Category labels
-		"C" x $numCategories .
-				# Category IDs
-		"C" .		# Last unique ID
-		"x3" .		# Padding
+	# Get the standard parts of the AppInfo block
+	$std_len = &Palm::StdAppInfo::parse_StdAppInfo($appinfo, $data);
+
+	$data = substr $data, $std_len;		# Remove the parsed part
+
+	# Get the rest of the AppInfo block
+	my $unpackstr =		# Argument to unpack()
+		"x2" .		# Padding
 		"n" .		# Dirty AppInfo (what is this?)
 		"Cx" .		# Sort order
 		"N" .		# Unique ID of unsent message (what is this?)
 		"n";		# Signature offset
-	my $appinfo = {};
 
-#  print "AppInfo block:\n";
-#  print "\tRaw: [$data]\n";
-#  print "Parsing AppInfo block, length ", length($data), "\n";
-
-	($renamed, @labels[0..($numCategories-1)],
-	 @uniqueIDs[0..($numCategories-1)], $lastUniqueID, $dirtyAppInfo,
-	 $sortOrder, $unsent, $sigOffset) =
+	($dirtyAppInfo, $sortOrder, $unsent, $sigOffset) =
 		unpack $unpackstr, $data;
 
-	for (@labels)
-	{
-		s/\0.*//;	# Trim at first NUL
-	}
-
-#  print "\tCategories:\n\t\t[", join("]\n\t\t[", @labels), "]\n";
-#  print "\tCategory IDs:\n\t\t[", join("]\n\t\t[", @uniqueIDs), "]\n";
-#  print "\tLast unique ID: [$lastUniqueID]\n";
-#  #print "\tPadding: [$padding]\n";
-#  print "\tDirty AppInfo: [$dirtyAppInfo]\n";
-#  print "\tSort order: [$sortOrder]\n";
-#  print "\tUnsent: [$unsent]\n";
-#  printf "\tSig offset: 0x%04x\n", $sigOffset;
-#  #print "\textra == [$extra] (", length($extra), ")\n";
-
-	$appinfo->{"renamed"} = $renamed;
-	$appinfo->{"categories"} = [ @labels ];
-	$appinfo->{"uniqueIDs"} = [ @uniqueIDs ];
-	$appinfo->{"lastUniqueID"} = $lastUniqueID;
 	$appinfo->{"dirty_AppInfo"} = $dirtyAppInfo;
 	$appinfo->{"sort_order"} = $sortOrder;
 	$appinfo->{"unsent"} = $unsent;
@@ -306,30 +254,15 @@ sub PackAppInfoBlock
 	my $self = shift;
 	my $retval;
 
-	$retval = pack("n", $self->{"appinfo"}{"renamed"});
-#  print "Length(\$retval) == ", length($retval), "\n";
-#  print "Packing ", $#{$self->{"appinfo"}{"categories"}}, " categories\n";
-#  	for (@{$self->{"appinfo"}{"categories"}})
-#  	{
-#  		$retval .= pack("a$categoryLength", $_);
-#  	}
-	$retval .= pack("a$categoryLength" x $numCategories,
-			@{$self->{"appinfo"}{"categories"}});
-#  print "Length(\$retval) == ", length($retval), "\n";
-#  print "Packing ", $#{$self->{"appinfo"}{"uniqueIDs"}}, " uniqueIDs\n";
-#  	for (@{$self->{"appinfo"}{"uniqueIDs"}})
-#  	{
-#  		$retval .= pack("C", $_);
-#  	}
-	$retval .= pack("C"x$numCategories, @{$self->{"appinfo"}{"uniqueIDs"}});
-#  print "Length(\$retval) == ", length($retval), "\n";
-	$retval .= pack "C x3 n Cx N nx",
-		$self->{"appinfo"}{"lastUniqueID"},
+	# Pack the standard part of the AppInfo block
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{"appinfo"});
+
+	# And the application-specific stuff
+	$retval .= pack "x2 n Cx N n",
 		$self->{"appinfo"}{"dirty_AppInfo"},
 		$self->{"appinfo"}{"sort_order"},
 		$self->{"appinfo"}{"unsent"},
 		$self->{"appinfo"}{"sig_offset"};
-#  print "length of appinfo block: ", length($retval), "\n";
 
 	return $retval;
 }
@@ -342,9 +275,6 @@ sub ParseRecord
 
 	delete $record{"offset"};	# This is useless
 	delete $record{"data"};
-
-#  print "Record:\n";
-#  print "\tRaw: [$data]\n";
 
 	my $date;
 	my $hour;
@@ -384,8 +314,6 @@ sub ParseRecord
 		$record{"day"}    = $day;
 		$record{"hour"}   = $hour;
 		$record{"minute"} = $minute;
-#  print "\tDate: [$date] ($day/$month/$year)\n";
-#  print "\tTime: [$hour]:[$minute]\n";
 	}
 
 	my $is_read		= ($flags & 0x8000);
@@ -408,15 +336,6 @@ sub ParseRecord
 	$record{"priority"} = $priority;
 	$record{"addressing"} = $addressing;
 
-#  printf "\tFlags: [0x%08x]", $flags;
-#  print " READ" if $is_read;
-#  print " SIG" if $has_signature;
-#  print " CONFREAD" if $confirm_read;
-#  print " CONFDELIVER" if $confirm_delivery;
-#  print "\n";
-#  print "\tPriority: [$priority] (", ("High","Normal","Low")[$priority], ")\n";
-#  print "\tAddressing: [$addressing] (", ("To", "Cc", "Bcc")[$addressing] ,")\n";
-
 	my $fields = substr $data, 6;
 	my @fields = split /\0/, $fields;
 
@@ -438,16 +357,6 @@ sub ParseRecord
 	$replyTo =~ s/\s*\n\s*(?!$)/, /gs;
 	$sentTo =~ s/\s*\n\s*(?!$)/, /gs;
 
-#  print "\tSubject: [$subject]\n";
-#  print "\tFrom: [$from]\n";
-#  print "\tTo: [$to]\n";
-#  print "\tCc: [$cc]\n";
-#  print "\tBcc: [$bcc]\n";
-#  print "\tReply-To: [$replyTo]\n";
-#  print "\tSent-To: [$sentTo]\n";
-#  print "\tBody: [$body]\n";
-#  print "\tLeftover fields (", $#fields-7, "): [", join("] [", @fields[8..$#fields]), "]\n";
-
 	$record{"subject"} = $subject;
 	$record{"from"} = $from;
 	$record{"to"} = $to;
@@ -457,10 +366,6 @@ sub ParseRecord
 	$record{"sent_to"} = $sentTo;
 	$record{"body"} = $body;
 	$record{"extra"} = $extra;
-
-	# XXX - When sending, if there are any newlines in the header,
-	# make sure there are spaces at the beginning of the next line
-	# to indicate a continuation line.
 
 	return \%record;
 }
@@ -513,6 +418,8 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 
 =head1 SEE ALSO
 
-Palm::PDB(1)
+Palm::PDB(3)
+
+Palm::StdAppInfo(3)
 
 =cut
