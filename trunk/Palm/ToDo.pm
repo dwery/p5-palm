@@ -2,13 +2,14 @@
 # 
 # Perl class for dealing with Palm ToDo databases. 
 #
-#	Copyright (C) 1999, Andrew Arensburger.
+#	Copyright (C) 1999, 2000, Andrew Arensburger.
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ToDo.pm,v 1.2 1999-11-18 06:21:32 arensb Exp $
+# $Id: ToDo.pm,v 1.3 2000-02-01 12:31:52 arensb Exp $
 
 package Palm::ToDo;
+($VERSION) = '$Revision: 1.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 use Palm::Raw();
 
