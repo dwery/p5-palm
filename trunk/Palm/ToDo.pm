@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ToDo.pm,v 1.8 2000-08-13 22:01:28 arensb Exp $
+# $Id: ToDo.pm,v 1.9 2000-09-24 16:26:17 arensb Exp $
 
 # XXX - Bug: apparently, the first ToDo item shows up with a category
 # of "unfiled"
@@ -18,7 +18,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.8 $ ))[1];
+$VERSION = sprintf "%d.%03d", '$Revision: 1.9 $ ' =~ m{(\d+)\.(\d+)};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
