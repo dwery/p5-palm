@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.16 2002-11-07 14:11:59 arensb Exp $
+# $Id: Mail.pm,v 1.17 2003-06-26 19:21:09 azummo Exp $
 
 use strict;
 package Palm::Mail;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.16 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.17 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @ISA = qw( Palm::StdAppInfo Palm::Raw );
 
@@ -401,6 +401,12 @@ sub PackRecord
 		$record->{hour},
 		$record->{minute},
 		$flags;
+
+	# can't leave any of these undef or join() complains
+	foreach (qw(subject from to cc bcc replyTo sentTo body) )
+	{
+		$record->{$_} ||= "";
+	}
 
 	$retval .= join "\0",
 		$record->{subject},
