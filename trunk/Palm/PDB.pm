@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.6 2000-02-01 12:31:30 arensb Exp $
+# $Id: PDB.pm,v 1.7 2000-04-24 10:00:33 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -19,8 +19,11 @@
 #	Records/resources
 # See "pdb.info" (from the ColdSync documentation) for details.
 
+use strict;
 package Palm::PDB;
-($VERSION) = '$Revision: 1.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
+use vars qw( $VERSION %PDBHandlers %PRCHandlers );
+
+$VERSION = (qw( $Revision: 1.7 $ ))[1];
 
 =head1 NAME
 
@@ -309,7 +312,7 @@ After Load() returns, $pdb may contain the following fields:
 
 The name of the database.
 
-=item $pdb-E<gt>{``attributes''}{``resource''}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"resource"Z<>}
 
 =item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"read-only"Z<>}
 
