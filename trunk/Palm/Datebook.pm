@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.15 2001-03-30 06:23:45 arensb Exp $
+# $Id: Datebook.pm,v 1.16 2001-06-02 19:17:07 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.15 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d", '$Revision: 1.16 $ ' =~ m{(\d+)\.(\d+)};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -169,8 +169,8 @@ The last day, month and year on which the event occurs.
 
     @{$record->{exceptions}}
     $day   = $record->{exceptions}[N][0]
-    $month = $record->{exceptions}[N][0]
-    $year  = $record->{exceptions}[N][0]
+    $month = $record->{exceptions}[N][1]
+    $year  = $record->{exceptions}[N][2]
 
 If there are any exceptions to a repeating event, I<e.g.> a weekly
 meeting that was cancelled one time, then the
