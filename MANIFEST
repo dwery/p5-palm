@@ -32,3 +32,4 @@ t/memo.t
 t/ToDoDB.pdb
 t/todo.t
 t/mkpdbname.t
+t/loadwrite.t
