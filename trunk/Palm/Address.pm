@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.10 2000-05-23 06:55:44 arensb Exp $
+# $Id: Address.pm,v 1.11 2000-07-19 03:58:29 arensb Exp $
 
 use strict;
 package Palm::Address;
@@ -16,7 +16,7 @@ use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA
 	$numFieldLabels $addrLabelLength @phoneLabels @countries );
 
-$VERSION = (qw( $Revision: 1.10 $ ))[1];
+$VERSION = (qw( $Revision: 1.11 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
@@ -284,6 +284,9 @@ sub new
 
 Creates a new Address record, with blank values for all of the fields.
 The AppInfo block will contain only an "Unfiled" category, with ID 0.
+
+C<new_Record> does B<not> add the new record to C<$pdb>. For that,
+you want C<$pdb-E<gt>append_Record>.
 
 =cut
 

@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.11 2000-07-09 00:25:46 arensb Exp $
+# $Id: PDB.pm,v 1.12 2000-07-19 03:58:45 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = (qw( $Revision: 1.11 $ ))[1];
+$VERSION = (qw( $Revision: 1.12 $ ))[1];
 
 =head1 NAME
 
@@ -1151,6 +1151,9 @@ Creates a new record, with the bare minimum needed:
 
 The ``dirty'' attribute is originally set, since this function will
 usually be called to create records to be added to a database.
+
+C<new_Record> does B<not> add the new record to a PDB. For that,
+you want C<append_Record>.
 
 =cut
 

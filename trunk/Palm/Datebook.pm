@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.7 2000-07-09 00:11:53 arensb Exp $
+# $Id: Datebook.pm,v 1.8 2000-07-19 03:58:35 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.7 $ ))[1];
+$VERSION = (qw( $Revision: 1.8 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -237,6 +237,9 @@ sub new
   $record = $pdb->new_Record;
 
 Creates a new Datebook record, with blank values for all of the fields.
+
+C<new_Record> does B<not> add the new record to C<$pdb>. For that,
+you want C<$pdb-E<gt>append_Record>.
 
 =cut
 

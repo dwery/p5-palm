@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ToDo.pm,v 1.6 2000-05-07 06:34:11 arensb Exp $
+# $Id: ToDo.pm,v 1.7 2000-07-19 03:58:48 arensb Exp $
 
 # XXX - Bug: apparently, the first ToDo item shows up with a category
 # of "unfiled"
@@ -18,7 +18,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.6 $ ))[1];
+$VERSION = (qw( $Revision: 1.7 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -142,6 +142,9 @@ sub new
   $record = $pdb->new_Record;
 
 Creates a new ToDo record, with blank values for all of the fields.
+
+C<new_Record> does B<not> add the new record to C<$pdb>. For that,
+you want C<$pdb-E<gt>append_Record>.
 
 =cut
 
