@@ -4,5 +4,3 @@
   uses the standard layout.
 - When creating a new PDB with 'sub new' in a helper, lots of fields
   are left undefined. This makes 'perl -w' unhappy.
-- Fix the man pages to make it clear that new_Record() doesn't append
-  the record to the PDB.
