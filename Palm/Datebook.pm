@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.6 2000-06-30 15:41:16 arensb Exp $
+# $Id: Datebook.pm,v 1.7 2000-07-09 00:11:53 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.6 $ ))[1];
+$VERSION = (qw( $Revision: 1.7 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -256,8 +256,7 @@ sub new_Record
 	$retval->{end_hour} =
 	$retval->{end_minute} = 0xff;
 
-	# Set the alarm to 10 minutes before the event.
-	# XXX - This should probably be customizable
+	# Set the alarm. Defaults to 10 minutes before the event.
 	$retval->{alarm}{advance} = 10;
 	$retval->{alarm}{unit} = 0;		# Minutes
 
