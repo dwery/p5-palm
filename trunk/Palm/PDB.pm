@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.24 2002-06-16 12:19:30 azummo Exp $
+# $Id: PDB.pm,v 1.25 2002-06-16 12:34:58 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.24 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.25 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 =head1 NAME
 
@@ -591,7 +591,7 @@ sub _load_rec_index
 	my $pdb = shift;
 	my $fh = shift;		# Input file handle
 	my $i;
-my $lastoffset = 0;
+	my $lastoffset = 0;
 
 	# Read each record index entry in turn
 	for ($i = 0; $i < $pdb->{_numrecs}; $i++)
@@ -611,20 +611,31 @@ my $lastoffset = 0;
 		# bytes, but it's really a double word (long) value.
 
 		($offset, $attributes, @id) = unpack "N C C3", $buf;
-if ($offset == $lastoffset)
-{
-print STDERR "Record $i has same offset as previous one: $offset\n";
-}
-$lastoffset = $offset;
+
+		if ($offset == $lastoffset)
+		{
+			print STDERR "Record $i has same offset as previous one: $offset\n";
+		}
+
+		$lastoffset = $offset;
 
 		$entry->{offset} = $offset;
+
 		$entry->{attributes}{expunged} = 1 if $attributes & 0x80;
 		$entry->{attributes}{dirty} = 1 if $attributes & 0x40;
 		$entry->{attributes}{deleted} = 1 if $attributes & 0x20;
 		$entry->{attributes}{private} = 1 if $attributes & 0x10;
-		$entry->{id} = ($id[0] << 16) |
-				($id[1] << 8) |
-				$id[2];
+
+		# Attribute names as of PalmOS 5.0 ( see /Core/System/DataMgr.h )
+
+		$entry->{'attributes'}{'Delete'}	= 1 if $attributes & 0x80;
+		$entry->{'attributes'}{'Dirty'}		= 1 if $attributes & 0x40;
+		$entry->{'attributes'}{'Busy'}		= 1 if $attributes & 0x20;
+		$entry->{'attributes'}{'Secret'}	= 1 if $attributes & 0x10;
+
+		$entry->{id} =	($id[0] << 16) |
+				($id[1] << 8)  |
+				 $id[2];
 
 		# The lower 4 bits of the attributes field are
 		# overloaded: If the record has been deleted and/or
@@ -1040,7 +1051,7 @@ sub Write
 		($self->{attributes}{backup}	? 0x0008 : 0) |
 		($self->{attributes}{"OK newer"}	? 0x0010 : 0) |
 		($self->{attributes}{reset}		? 0x0020 : 0) |
-		($self->{attributes}{open}		? 0x0040 : 0);
+		($self->{attributes}{open}		? 0x8000 : 0);
 
 	# Calculate AppInfo block offset
 	if ((!defined($appinfo_block)) || ($appinfo_block eq ""))
