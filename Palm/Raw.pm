@@ -12,10 +12,15 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Raw.pm,v 1.6 2000-05-06 21:19:02 arensb Exp $
+# $Id: Raw.pm,v 1.7 2000-05-07 06:33:41 arensb Exp $
 
+use strict;
 package Palm::Raw;
-($VERSION) = '$Revision: 1.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
+use Palm::PDB;
+use vars qw( $VERSION @ISA );
+
+$VERSION = (qw( $Revision: 1.7 $ ))[1];
+@ISA = qw( Palm::PDB );
 
 =head1 NAME
 
@@ -66,36 +71,32 @@ in your script.
 
 =head2 AppInfo block
 
-    $pdb->{"appinfo"}
+    $pdb->{appinfo}
 
 This is a scalar, the raw data of the AppInfo block.
 
 =head2 Sort block
 
-    $pdb->{"sort"}
+    $pdb->{sort}
 
 This is a scalar, the raw data of the sort block.
 
 =head2 Records
 
-    @{$pdb->{"records"}};
+    @{$pdb->{records}};
 
 Each element in the "records" array is a scalar, the raw data of that
 record.
 
 =head2 Resources
 
-    @{$pdb->{"resources"}};
+    @{$pdb->{resources}};
 
 Each element in the "resources" array is a scalar, the raw data of
 that resource.
 
 =cut
 #'
-
-use Palm::PDB;
-
-@ISA = qw( Palm::PDB );
 
 sub import
 {
@@ -145,14 +146,14 @@ sub PackAppInfoBlock
 {
 	my $self = shift;
 
-	return $self->{"appinfo"};
+	return $self->{appinfo};
 }
 
 sub PackSortBlock
 {
 	my $self = shift;
 
-	return $self->{"sort"};
+	return $self->{sort};
 }
 
 sub PackRecord
@@ -160,7 +161,7 @@ sub PackRecord
 	my $self = shift;
 	my $record = shift;
 
-	return $record->{"data"};
+	return $record->{data};
 }
 
 sub PackResource
@@ -168,7 +169,7 @@ sub PackResource
 	my $self = shift;
 	my $resource = shift;
 
-	return $resource->{"data"};
+	return $resource->{data};
 }
 
 1;
