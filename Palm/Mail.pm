@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.11 2000-08-13 22:00:38 arensb Exp $
+# $Id: Mail.pm,v 1.12 2000-09-24 16:25:49 arensb Exp $
 
 use strict;
 package Palm::Mail;
@@ -14,7 +14,7 @@ use Palm::Raw();
 use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.11 $ ) )[1];
+$VERSION = sprintf "%d.%03d", '$Revision: 1.12 $ ' =~ m{(\d+)\.(\d+)};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
