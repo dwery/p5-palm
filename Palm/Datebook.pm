@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.16 2001-06-02 19:17:07 arensb Exp $
+# $Id: Datebook.pm,v 1.17 2002-01-26 22:25:13 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,8 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.16 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d_%03d_%03d",
+	'$Revision: 1.17 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 

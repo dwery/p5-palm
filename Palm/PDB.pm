@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.20 2001-02-24 23:35:53 arensb Exp $
+# $Id: PDB.pm,v 1.21 2002-01-26 22:25:16 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,8 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.20 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d_%03d_%03d",
+	'$Revision: 1.21 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 =head1 NAME
 

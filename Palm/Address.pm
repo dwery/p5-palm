@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.13 2000-09-24 16:25:33 arensb Exp $
+# $Id: Address.pm,v 1.14 2002-01-26 22:25:11 arensb Exp $
 
 use strict;
 package Palm::Address;
@@ -16,7 +16,8 @@ use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA
 	$numFieldLabels $addrLabelLength @phoneLabels @countries );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.13 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d_%03d_%03d",
+	'$Revision: 1.14 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
@@ -24,7 +25,7 @@ $VERSION = sprintf "%d.%03d", '$Revision: 1.13 $ ' =~ m{(\d+)\.(\d+)};
 
 =head1 NAME
 
-Palm::Address - Handler for Palm AddressBook databases.
+Palm::Address - Handler for Palm AddressBook databases
 
 =head1 SYNOPSIS
 

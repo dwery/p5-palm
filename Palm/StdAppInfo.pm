@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.15 2001-06-05 13:04:34 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.16 2002-01-26 22:25:19 arensb Exp $
 
 use strict;
 package Palm::StdAppInfo;
@@ -16,7 +16,8 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA $error );
 	# $error acts like $! in that it reports the error that occurred
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.15 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d_%03d_%03d",
+	'$Revision: 1.16 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
