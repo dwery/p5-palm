@@ -36,3 +36,8 @@ others.
 etc., please send mail to the maintainer, Andrew Arensburger, at
 <arensb@ooblick.com>. See also
 	http://www.ooblick.com/software/coldsync/
+
+* AUTHORS AND CONTRIBUTORS:
+
+	Andrew Arensburger <arensb@ooblick.com>: principal perpetrator
+	Robert Norris <rob@nauseum.org>: patch for empty PDBs
