@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 2.1 2000-08-02 03:19:56 arensb Exp $
+# $Id: pdbdump,v 2.2 2000-08-24 04:29:34 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -17,7 +17,7 @@ use Palm::ToDo;
 
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
-$VERSION = (qw( $Revision: 2.1 $ ))[1];
+$VERSION = (qw( $Revision: 2.2 $ ))[1];
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
@@ -633,6 +633,9 @@ sub hexdump
 	}
 }
 
+# XXX - Ought to have a &dumparray as well. The two can call each other
+# recursively.
+
 sub dumphash
 {
 	my $hash = shift;
@@ -653,7 +656,15 @@ sub dumphash
 			print $indent, $key, ":\n";
 			for ($i = 0; $i <= $#{$value}; $i++)
 			{
-				print $indent, "\t$i: [$value->[$i]]\n";
+				if (ref($value->[$i]) eq "HASH")
+				{
+					print $indent, "    $i:\n";
+					&dumphash($value->[$i],
+						$indent . "\t");
+				} else {
+					print $indent,
+						"\t$i: [$value->[$i]]\n";
+				}
 			}
 		} else {
 			print $indent, $key, " -> [", $value, "]\n";
