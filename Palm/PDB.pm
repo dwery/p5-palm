@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.4 2000-01-23 06:28:09 arensb Exp $
+# $Id: PDB.pm,v 1.5 2000-01-23 09:18:55 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -20,7 +20,7 @@
 # See "pdb.info" (from the ColdSync documentation) for details.
 
 package Palm::PDB;
-($VERSION) = '$Revision: 1.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
+($VERSION) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 =head1 NAME
 
@@ -499,11 +499,9 @@ sub Load
 	# Read the index itself
 	if ($self->{"attributes"}{"resource"})
 	{
-		# XXX - Shouldn't be a method call
-		$self->_load_rsrc_index(\*PDB);
+		&_load_rsrc_index($self, \*PDB);
 	} else {
-		# XXX - Shouldn't be a method call
-		$self->_load_rec_index(\*PDB);
+		&_load_rec_index($self, \*PDB);
 	}
 
 	# Read the two NUL bytes
@@ -513,25 +511,21 @@ sub Load
 	# Read AppInfo block, if it exists
 	if ($self->{"_appinfo_offset"} != 0)
 	{
-		# XXX - Shouldn't be a method call
-		$self->_load_appinfo_block(\*PDB);
+		&_load_appinfo_block($self, \*PDB);
 	}
 
 	# Read sort block, if it exists
 	if ($self->{"_sort_offset"} != 0)
 	{
-		# XXX - Shouldn't be a method call
-		$self->_load_sort_block(\*PDB);
+		&_load_sort_block($self, \*PDB);
 	}
 
 	# Read record/resource list
 	if ($self->{"attributes"}{"resource"})
 	{
-		# XXX - Shouldn't be a method call
-		$self->_load_resources(\*PDB);
+		&_load_resources($self, \*PDB);
 	} else {
-		# XXX - Shouldn't be a method call
-		$self->_load_records(\*PDB);
+		&_load_records($self, \*PDB);
 	}
 
 	# These keys were needed for parsing the file, but are not
@@ -549,12 +543,12 @@ sub Load
 # Private function. Read the record index, for a record database
 sub _load_rec_index
 {
-	my $self = shift;
+	my $pdb = shift;
 	my $fh = shift;		# Input file handle
 	my $i;
 
 	# Read each record index entry in turn
-	for ($i = 0; $i < $self->{"_numrecs"}; $i++)
+	for ($i = 0; $i < $pdb->{"_numrecs"}; $i++)
 	{
 		my $buf;		# Input buffer
 
@@ -596,7 +590,7 @@ sub _load_rec_index
 		}
 
 		# Put this information on a temporary array
-		push @{$self->{"_index"}}, $entry;
+		push @{$pdb->{"_index"}}, $entry;
 	}
 }
 
@@ -604,12 +598,12 @@ sub _load_rec_index
 # Private function. Read the resource index, for a resource database
 sub _load_rsrc_index
 {
-	my $self = shift;
+	my $pdb = shift;
 	my $fh = shift;		# Input file handle
 	my $i;
 
 	# Read each resource index entry in turn
-	for ($i = 0; $i < $self->{"_numrecs"}; $i++)
+	for ($i = 0; $i < $pdb->{"_numrecs"}; $i++)
 	{
 		my $buf;		# Input buffer
 
@@ -627,7 +621,7 @@ sub _load_rsrc_index
 		$entry->{"id"} = $id;
 		$entry->{"offset"} = $offset;
 
-		push @{$self->{"_index"}}, $entry;
+		push @{$pdb->{"_index"}}, $entry;
 	}
 }
 
@@ -635,17 +629,17 @@ sub _load_rsrc_index
 # Private function. Read the AppInfo block
 sub _load_appinfo_block
 {
-	my $self = shift;
+	my $pdb = shift;
 	my $fh = shift;		# Input file handle
 	my $len;		# Length of AppInfo block
 	my $buf;		# Input buffer
 
 	# Sanity check: make sure we're positioned at the beginning of
 	# the AppInfo block
-	if (tell($fh) != $self->{"_appinfo_offset"})
+	if (tell($fh) != $pdb->{"_appinfo_offset"})
 	{
 		die "Bad AppInfo offset: expected ",
-			sprintf("0x%08x", $self->{"_appinfo_offset"}),
+			sprintf("0x%08x", $pdb->{"_appinfo_offset"}),
 			", but I'm at ",
 			tell($fh), "\n";
 	}
@@ -653,67 +647,67 @@ sub _load_appinfo_block
 	# There's nothing that explicitly gives the size of the
 	# AppInfo block. Rather, it has to be inferred from the offset
 	# of the AppInfo block (previously recorded in
-	# $self->{_appinfo_offset}) and whatever's next in the file.
+	# $pdb->{_appinfo_offset}) and whatever's next in the file.
 	# That's either the sort block, the first data record, or the
 	# end of the file.
 
-	if ($self->{"_sort_offset"})
+	if ($pdb->{"_sort_offset"})
 	{
 		# The next thing in the file is the sort block
-		$len = $self->{"_sort_offset"} - $self->{"_appinfo_offset"};
-	} elsif (@{$self->{"_index"}} != ())
+		$len = $pdb->{"_sort_offset"} - $pdb->{"_appinfo_offset"};
+	} elsif (@{$pdb->{"_index"}} != ())
 	{
 		# There's no sort block; the next thing in the file is
 		# the first data record
-		$len = $self->{"_index"}[0]{"offset"} -
-			$self->{"_appinfo_offset"};
+		$len = $pdb->{"_index"}[0]{"offset"} -
+			$pdb->{"_appinfo_offset"};
 	} else {
 		# There's no sort block and there are no records. The
 		# AppInfo block goes to the end of the file.
-		$len = $self->{"_size"} - $self->{"_appinfo_offset"};
+		$len = $pdb->{"_size"} - $pdb->{"_appinfo_offset"};
 	}
 
 	# Read the AppInfo block
 	read $fh, $buf, $len;
 
 	# Tell the real class to parse the AppInfo block
-	$self->{"appinfo"} = $self->ParseAppInfoBlock($buf);
+	$pdb->{"appinfo"} = $pdb->ParseAppInfoBlock($buf);
 }
 
 # _load_sort_block
 # Private function. Read the sort block.
 sub _load_sort_block
 {
-	my $self = shift;
+	my $pdb = shift;
 	my $fh = shift;		# Input file handle
 	my $len;		# Length of sort block
 	my $buf;		# Input buffer
 
 	# Sanity check: make sure we're positioned at the beginning of
 	# the sort block
-	if (tell($fh) != $self->{"_sort_offset"})
+	if (tell($fh) != $pdb->{"_sort_offset"})
 	{
 		die "Bad sort block offset: expected ",
-			sprintf("0x%08x", $self->{"_sort_offset"}),
+			sprintf("0x%08x", $pdb->{"_sort_offset"}),
 			", but I'm at ",
 			tell($fh), "\n";
 	}
 
 	# There's nothing that explicitly gives the size of the sort
 	# block. Rather, it has to be inferred from the offset of the
-	# sort block (previously recorded in $self->{_sort_offset})
+	# sort block (previously recorded in $pdb->{_sort_offset})
 	# and whatever's next in the file. That's either the first
 	# data record, or the end of the file.
 
-	if (defined($self->{"_index"}))
+	if (defined($pdb->{"_index"}))
 	{
 		# The next thing in the file is the first data record
-		$len = $self->{"_index"}[0]{"offset"} -
-			$self->{"_sort_offset"};
+		$len = $pdb->{"_index"}[0]{"offset"} -
+			$pdb->{"_sort_offset"};
 	} else {
 		# There are no records. The sort block goes to the end
 		# of the file.
-		$len = $self->{"_size"} - $self->{"_sort_offset"};
+		$len = $pdb->{"_size"} - $pdb->{"_sort_offset"};
 	}
 
 	# Read the AppInfo block
@@ -724,7 +718,7 @@ sub _load_sort_block
 	# block here.
 
 	# Tell the real class to parse the sort block
-	$self->{"sort"} = $self->ParseSortBlock($buf);
+	$pdb->{"sort"} = $pdb->ParseSortBlock($buf);
 }
 
 # _load_records
@@ -732,23 +726,23 @@ sub _load_sort_block
 # (PDB)
 sub _load_records
 {
-	my $self = shift;
+	my $pdb = shift;
 	my $fh = shift;		# Input file handle
 	my $i;
 
 	# Read each record in turn
-	for ($i = 0; $i < $self->{"_numrecs"}; $i++)
+	for ($i = 0; $i < $pdb->{"_numrecs"}; $i++)
 	{
 		my $len;	# Length of record
 		my $buf;	# Input buffer
 
 		# Sanity check: make sure we're where we think we
 		# should be.
-		if (tell($fh) != $self->{"_index"}[$i]{"offset"})
+		if (tell($fh) != $pdb->{"_index"}[$i]{"offset"})
 		{
 			die "Bad offset for record $i: expected ",
 				sprintf("0x%08x",
-					$self->{"_index"}[$i]{"offset"}),
+					$pdb->{"_index"}[$i]{"offset"}),
 				" but it's at ",
 				sprintf("0x%08x", tell($fh)), "\n";
 		}
@@ -756,15 +750,15 @@ sub _load_records
 		# Compute the length of the record: the last record
 		# extends to the end of the file. The others extend to
 		# the beginning of the next record.
-		if ($i == $self->{"_numrecs"} - 1)
+		if ($i == $pdb->{"_numrecs"} - 1)
 		{
 			# This is the last record
-			$len = $self->{"_size"} -
-				$self->{"_index"}[$i]{"offset"};
+			$len = $pdb->{"_size"} -
+				$pdb->{"_index"}[$i]{"offset"};
 		} else {
 			# This is not the last record
-			$len = $self->{"_index"}[$i+1]{"offset"} -
-				$self->{"_index"}[$i]{"offset"};
+			$len = $pdb->{"_index"}[$i+1]{"offset"} -
+				$pdb->{"_index"}[$i]{"offset"};
 		}
 
 		# Read the record
@@ -775,11 +769,11 @@ sub _load_records
 		# plus a "data" field with the raw record data.
 		my $record;
 
-		$record = $self->ParseRecord(
-			%{$self->{"_index"}[$i]},
+		$record = $pdb->ParseRecord(
+			%{$pdb->{"_index"}[$i]},
 			"data"	=> $buf,
 			);
-		push @{$self->{"records"}}, $record;
+		push @{$pdb->{"records"}}, $record;
 	}
 }
 
@@ -788,23 +782,23 @@ sub _load_records
 # (PRC)
 sub _load_resources
 {
-	my $self = shift;
+	my $pdb = shift;
 	my $fh = shift;		# Input file handle
 	my $i;
 
 	# Read each resource in turn
-	for ($i = 0; $i < $self->{"_numrecs"}; $i++)
+	for ($i = 0; $i < $pdb->{"_numrecs"}; $i++)
 	{
 		my $len;	# Length of record
 		my $buf;	# Input buffer
 
 		# Sanity check: make sure we're where we think we
 		# should be.
-		if (tell($fh) != $self->{"_index"}[$i]{"offset"})
+		if (tell($fh) != $pdb->{"_index"}[$i]{"offset"})
 		{
 			die "Bad offset for resource $i: expected ",
 				sprintf("0x%08x",
-					$self->{"_index"}[$i]{"offset"}),
+					$pdb->{"_index"}[$i]{"offset"}),
 				" but it's at ",
 				sprintf("0x%08x", tell($fh)), "\n";
 		}
@@ -812,15 +806,15 @@ sub _load_resources
 		# Compute the length of the resource: the last
 		# resource extends to the end of the file. The others
 		# extend to the beginning of the next resource.
-		if ($i == $self->{"_numrecs"} - 1)
+		if ($i == $pdb->{"_numrecs"} - 1)
 		{
 			# This is the last resource
-			$len = $self->{"_size"} -
-				$self->{"_index"}[$i]{"offset"};
+			$len = $pdb->{"_size"} -
+				$pdb->{"_index"}[$i]{"offset"};
 		} else {
 			# This is not the last resource
-			$len = $self->{"_index"}[$i+1]{"offset"} -
-				$self->{"_index"}[$i]{"offset"};
+			$len = $pdb->{"_index"}[$i+1]{"offset"} -
+				$pdb->{"_index"}[$i]{"offset"};
 		}
 
 		# Read the resource
@@ -832,11 +826,11 @@ sub _load_resources
 		# data.
 		my $resource;
 
-		$resource = $self->ParseResource(
-			%{$self->{"_index"}[$i]},
+		$resource = $pdb->ParseResource(
+			%{$pdb->{"_index"}[$i]},
 			"data"	=> $buf,
 			);
-		push @{$self->{"resources"}}, $resource;
+		push @{$pdb->{"resources"}}, $resource;
 	}
 }
 
@@ -1115,9 +1109,26 @@ sub Write
 	close OFILE;
 }
 
-# XXX - Document this
+=head2 new_Record
 
-# new_Record
+  $record = Palm::PDB->new_Record();
+  $record = new_Record Palm::PDB;
+
+Creates a new record, with the bare minimum needed:
+
+	$record->{"category"}
+	$record->{"attributes"}{"expunged"}
+	$record->{"attributes"}{"dirty"}
+	$record->{"attributes"}{"deleted"}
+	$record->{"attributes"}{"private"}
+	$record->{"id"}
+
+The ``dirty'' attribute is originally set, since this function will
+usually be called to create records to be added to a database.
+
+=cut
+
+# PDB::new_Record()
 # Create a new, initialized record, and return a reference to it.
 # The record is initially marked as being dirty, since that's usually
 # the Right Thing.
@@ -1134,13 +1145,25 @@ sub new_Record
 		deleted		=> 0,
 		private		=> 0,
 	};
-	$retval->{"id"} = 0;
+	$retval->{"id"} = 0;		# Initially, no record ID
 
 	return $retval;
 }
 
-# XXX - Document this
+=head2 append_Record
 
+  $record  = $pdb->append_Record;
+  $record2 = $pdb->append_Record($record1);
+
+If called without any arguments, creates a new record with
+L<new_Record()|/new_Record>, and appends it to $pdb.
+
+If given a reference to a record, appends that record to
+@{$pdb->{"records"}}.
+
+Returns a reference to the newly-appended record.
+
+=cut
 # append_Record
 # Append the given records to the database's list of records. If no
 # records are given, create one, append it, and return a reference to
@@ -1163,10 +1186,20 @@ sub append_Record
 	# to the list of records, and return the first one.
 	push @{$self->{"records"}}, @_;
 
-	return $_[0];		# XXX - Is this sane?
+	return $_[0];
 }
 
-# XXX - Document this
+=head2
+
+  $resource = Palm::PDB->new_Resource();
+  $resource = new_Resource Palm::PDB;
+
+Creates a new resource and initializes
+
+	$resource->{"type"}
+	$resource->{"id"}
+
+=cut
 
 # new_Resource
 # Create a new, initialized resource, and return a reference to it.
@@ -1182,7 +1215,20 @@ sub new_Resource
 	return $retval;
 }
 
-# XXX - Document this
+=head2 append_Resource
+
+  $resource  = $pdb->append_Resource;
+  $resource2 = $pdb->append_Resource($resource1);
+
+If called without any arguments, creates a new resource with
+L<new_Resource()|/new_Resource>, and appends it to $pdb.
+
+If given a reference to a resource, appends that resource to
+@{$pdb->{"resources"}}.
+
+Returns a reference to the newly-appended resource.
+
+=cut
 
 # append_Resource
 # Append the given resources to the database's list of resources. If no
@@ -1206,10 +1252,18 @@ sub append_Resource
 	# to the list of resources, and return the first one.
 	push @{$self->{"resources"}}, @_;
 
-	return $_[0];		# XXX - Is this sane?
+	return $_[0];
 }
 
-# XXX - Document this
+=head2 findRecordByID
+
+  $record = $pdb->findRecordByID($id);
+
+Looks through the list of records in $pdb, and returns a reference to
+the record with ID $id, or the undefined value if no such record was
+found.
+
+=cut
 
 # findRecordByID
 # Returns a reference to the record with the given ID, or 'undef' if
@@ -1230,7 +1284,18 @@ sub findRecordByID
 	return undef;			# Not found
 }
 
-# XXX - Document this
+=head2 deleteRecord
+
+  $pdb->deleteRecord($record, $expunge);
+
+Marks $record for deletion, so that it will be deleted from the
+database at the next sync.
+
+If $expunge is false or omitted, the record will be marked
+for deletion with archival. If $expunge is true, the record will be
+marked for deletion without archival.
+
+=cut
 
 # deleteRecord
 # $pdb->deleteRecord($record ?, $expunge?)
