@@ -2,31 +2,25 @@
 #
 # Perl module for reading and writing Palm databases (both PDB and PRC).
 #
-#	Copyright (C) 1999, Andrew Arensburger.
+#	Copyright (C) 1999, 2000, Andrew Arensburger.
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.3 1999-11-18 18:20:39 arensb Exp $
+# $Id: PDB.pm,v 1.4 2000-01-23 06:28:09 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
 #	Header
 #	Index header
 #	Record/resource index
-#	Two NUL bytes
+#	Two NUL(?) bytes
 #	Optional AppInfo block
 #	Optional sort block
 #	Records/resources
-# See "pdb.info" for details.
-
-# XXX - Rob's suggestion: PackFile() and UnpackFile() methods, which
-# pack/unpack the entire file. That way, you can construct a file and
-# shove it over the network or something.
+# See "pdb.info" (from the ColdSync documentation) for details.
 
 package Palm::PDB;
-($VERSION) = '$Revision: 1.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
-
-# XXX - Fix the function cross-references.
+($VERSION) = '$Revision: 1.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 =head1 NAME
 
@@ -56,10 +50,10 @@ used in conjunction with supplemental modules for specific types of
 databases, such as Palm::Raw or Palm::Memo.
 
 The Palm::PDB module encapsulates the common work of parsing the
-structure of a Palm database. The L</Load()> function reads the file,
+structure of a Palm database. The L<Load()|/Load> function reads the file,
 then passes the individual chunks (header, records, etc.) to
 application-specific functions for processing. Similarly, the
-L</Write()> function calls application-specific functions to get the
+L<Write()|/Write> function calls application-specific functions to get the
 individual chunks, then writes them to a file.
 
 =head1 METHODS
@@ -83,7 +77,7 @@ my %PRCHandlers = ();			# Resource handler map
   $new = new Palm::PDB();
 
 Creates a new PDB. $new is a reference to an anonymous hash. Some of
-its elements have special significance. See L</Load()>.
+its elements have special significance. See L<Load()|/Load>.
 
 =cut
 
@@ -91,6 +85,24 @@ sub new
 {
 	my $class = shift;
 	my $self = {};
+
+	# Initialize the PDB. These values are just defaults, of course.
+	$self->{"name"} = "";
+	$self->{"attributes"} = {
+		resource	=> 0,
+		"read-only"	=> 0,
+		"AppInfo dirty"	=> 0,
+		backup		=> 0,
+		"OK newer"	=> 0,
+		reset		=> 0,
+		open		=> 0,
+	};
+	$self->{"version"} = 0;
+
+	my $now = time;
+	$self->{"ctime"} = $now;
+	$self->{"mtime"} = $now;
+	$self->{"baktime"} = 0;
 
 	bless $self, $class;
 	return $self;
@@ -106,10 +118,10 @@ Typically:
 	[ "FooB", "DATA" ],
 	);
 
-The $pdb->L<Load()|/Load()> method acts as a virtual constructor. When it
-reads the header of a C<.pdb> file, it looks up the file's creator and
-type in a set of tables, and reblesses $pdb into a class capable of
-parsing the application-specific parts of the file (AppInfo block,
+The $pdb->L<Load()|/Load> method acts as a virtual constructor. When
+it reads the header of a C<.pdb> file, it looks up the file's creator
+and type in a set of tables, and reblesses $pdb into a class capable
+of parsing the application-specific parts of the file (AppInfo block,
 records, etc.)
 
 RegisterPDBHandlers() adds entries to these tables; it says that any
@@ -206,8 +218,9 @@ Typically:
 	[ "FooZ", "CODE" ],
 	);
 
-RegisterPRCHandlers() is similar to L</RegisterPDBHandlers()>, but
-specifies a class to handle resource database (C<.prc>) files.
+RegisterPRCHandlers() is similar to
+L<RegisterPDBHandlers()|/RegisterPDBHandlers>, but specifies a class
+to handle resource database (C<.prc>) files.
 
 A class for parsing applications should begin with:
 
@@ -292,79 +305,79 @@ After Load() returns, $pdb may contain the following fields:
 
 =over
 
-=item $pdb-Z<>>{Z<>"name"Z<>}
+=item $pdb-E<gt>{Z<>"name"Z<>}
 
 The name of the database.
 
-=item $pdb-Z<>>{Z<>"attributes"Z<>}{Z<>"resource"Z<>}
+=item $pdb-E<gt>{``attributes''}{``resource''}
 
-=item $pdb-Z<>>{Z<>"attributes"Z<>}{Z<>"read-only"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"read-only"Z<>}
 
-=item $pdb-Z<>>{Z<>"attributes"Z<>}{Z<>"AppInfo dirty"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"AppInfo dirty"Z<>}
 
-=item $pdb-Z<>>{Z<>"attributes"Z<>}{Z<>"backup"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"backup"Z<>}
 
-=item $pdb-Z<>>{Z<>"attributes"Z<>}{Z<>"OK newer"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"OK newer"Z<>}
 
-=item $pdb-Z<>>{Z<>"attributes"Z<>}{Z<>"reset"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"reset"Z<>}
 
-=item $pdb-Z<>>{Z<>"attributes"Z<>}{Z<>"open"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"open"Z<>}
 
 These are the attribute flags from the database header. Each is true
 iff the corresponding flag is set.
 
-=item $pdb-Z<>>{Z<>"version"Z<>}
+=item $pdb-E<gt>{Z<>"version"Z<>}
 
 The database's version number. An integer.
 
-=item $pdb-Z<>>{Z<>"ctime"Z<>}
+=item $pdb-E<gt>{Z<>"ctime"Z<>}
 
-=item $pdb-Z<>>{Z<>"mtime"Z<>}
+=item $pdb-E<gt>{Z<>"mtime"Z<>}
 
-=item $pdb-Z<>>{Z<>"baktime"Z<>}
+=item $pdb-E<gt>{Z<>"baktime"Z<>}
 
 The database's creation time, last modification time, and time of last
 backup, in Unix C<time_t> format (seconds since Jan. 1, 1970).
 
-=item $pdb-Z<>>{Z<>"modnum"Z<>}
+=item $pdb-E<gt>{Z<>"modnum"Z<>}
 
 The database's modification number. An integer.
 
-=item $pdb-Z<>>{Z<>"type"Z<>}
+=item $pdb-E<gt>{Z<>"type"Z<>}
 
 The database's type. A four-character string.
 
-=item $pdb-Z<>>{Z<>"creator"Z<>}
+=item $pdb-E<gt>{Z<>"creator"Z<>}
 
 The database's creator. A four-character string.
 
-=item $pdb-Z<>>{Z<>"uniqueIDseed"Z<>}
+=item $pdb-E<gt>{Z<>"uniqueIDseed"Z<>}
 
 The database's unique ID seed. An integer.
 
-=item $pdb-Z<>>{Z<>"2NULs"Z<>}
+=item $pdb-E<gt>{Z<>"2NULs"Z<>}
 
 The two NUL bytes that appear after the record index and the AppInfo
 block. Included here because every once in a long while, they are not
 NULs, for some reason.
 
-=item $pdb-Z<>>{Z<>"appinfo"Z<>}
+=item $pdb-E<gt>{Z<>"appinfo"Z<>}
 
 The AppInfo block, as returned by the $pdb->ParseAppInfoBlock() helper
 method.
 
-=item $pdb-Z<>>{Z<>"sort"Z<>}
+=item $pdb-E<gt>{Z<>"sort"Z<>}
 
 The sort block, as returned by the $pdb->ParseSortBlock() helper
 method.
 
-=item @{$pdb-Z<>>{Z<>"records"Z<>}}
+=item @{$pdb-E<gt>{Z<>"records"Z<>}}
 
 The list of records in the database, as returned by the
 $pdb->ParseRecord() helper method. Resource databases do not have
 this.
 
-=item @{$pdb-Z<>>{Z<>"resources"Z<>}}
+=item @{$pdb-E<gt>{Z<>"resources"Z<>}}
 
 The list of resources in the database, as returned by the
 $pdb->ParseResource() helper method. Record databases do not have
@@ -994,6 +1007,7 @@ sub Write
 		$self->{"creator"},
 		$self->{"uniqueIDseed"};
 		;
+
 	print OFILE "$header";
 
 	# Write index header
@@ -1063,7 +1077,12 @@ sub Write
 	}
 
 	# Write the two NULs
-	print OFILE $self->{"2NULs"};
+	if (length($self->{"2NULs"}) == 2)
+	{
+		print OFILE $self->{"2NULs"};
+	} else {
+		print OFILE "\0\0";
+	}
 
 	# Write AppInfo block
 	print OFILE $appinfo_block unless $appinfo_offset == 0;
@@ -1094,6 +1113,146 @@ sub Write
 	}
 
 	close OFILE;
+}
+
+# XXX - Document this
+
+# new_Record
+# Create a new, initialized record, and return a reference to it.
+# The record is initially marked as being dirty, since that's usually
+# the Right Thing.
+sub new_Record
+{
+	my $classname = shift;
+	my $retval = {};
+
+	# Initialize the record
+	$retval->{"category"} = 0;	# Unfiled, by convention
+	$retval->{"attributes"} = {
+		expunged	=> 0,
+		dirty		=> 1,	# Note: originally dirty
+		deleted		=> 0,
+		private		=> 0,
+	};
+	$retval->{"id"} = 0;
+
+	return $retval;
+}
+
+# XXX - Document this
+
+# append_Record
+# Append the given records to the database's list of records. If no
+# records are given, create one, append it, and return a reference to
+# it.
+sub append_Record
+{
+	my $self = shift;
+
+	if ($#_ < 0)
+	{
+		# No arguments given. Create a new record.
+		my $record = $self->new_Record;
+
+		push @{$self->{"records"}}, $record;
+
+		return $record;
+	}
+
+	# At least one argument was given. Append all of the arguments
+	# to the list of records, and return the first one.
+	push @{$self->{"records"}}, @_;
+
+	return $_[0];		# XXX - Is this sane?
+}
+
+# XXX - Document this
+
+# new_Resource
+# Create a new, initialized resource, and return a reference to it.
+sub new_Resource
+{
+	my $classname = shift;
+	my $retval = {};
+
+	# Initialize the resource
+	$retval->{"type"} = "    ";	# XXX - Is this sane?
+	$retval->{"id"} = 0;
+
+	return $retval;
+}
+
+# XXX - Document this
+
+# append_Resource
+# Append the given resources to the database's list of resources. If no
+# resources are given, create one, append it, and return a reference to
+# it.
+sub append_Resource
+{
+	my $self = shift;
+
+	if ($#_ < 0)
+	{
+		# No arguments given. Create a new resource
+		my $resource = $self->new_Resource;
+
+		push @{$self->{"resources"}}, $resource;
+
+		return $resource;
+	}
+
+	# At least one argument was given. Append all of the arguments
+	# to the list of resources, and return the first one.
+	push @{$self->{"resources"}}, @_;
+
+	return $_[0];		# XXX - Is this sane?
+}
+
+# XXX - Document this
+
+# findRecordByID
+# Returns a reference to the record with the given ID, or 'undef' if
+# it doesn't exist.
+sub findRecordByID
+{
+	my $self = shift;
+	my $id = shift;
+
+	return undef if $id eq "";
+
+	for (@{$self->{"records"}})
+	{
+		next unless $_->{"id"} == $id;
+		return $_;		# Found it
+	}
+
+	return undef;			# Not found
+}
+
+# XXX - Document this
+
+# deleteRecord
+# $pdb->deleteRecord($record ?, $expunge?)
+#
+# Mark the given record for deletion. If $expunge is true, mark the
+# record for deletion without an archive.
+
+sub deleteRecord
+{
+	my $self = shift;
+	my $record = shift;
+	my $expunge = shift;
+
+	$record->{"attributes"}{"deleted"} = 1;
+	if ($expunge)
+	{
+		$record->{"attributes"}{"expunged"} = 1;
+		$record->{"attributes"}{"archive"} = 0;
+	} else {
+		$record->{"attributes"}{"expunged"} = 0;
+		$record->{"attributes"}{"archive"} = 1;
+	}
 }
 
 1;
