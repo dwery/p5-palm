@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 3.1 2000-09-24 16:37:00 arensb Exp $
+# $Id: pdbdump,v 3.2 2000-09-25 05:06:05 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -17,7 +17,7 @@ use Palm::ToDo;
 
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
-$VERSION = (qw( $Revision: 3.1 $ ))[1];
+$VERSION = (qw( $Revision: 3.2 $ ))[1];
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
@@ -129,6 +129,7 @@ sub rawread
 	$self->{attributes}{"OK newer"} = 1 if $attributes & 0x0010;
 	$self->{attributes}{reset} = 1 if $attributes & 0x0020;
 	$self->{attributes}{open} = 1 if $attributes & 0x0040;
+	$self->{attributes}{launchable} = 1 if $attributes & 0x0200;
 	$self->{version} = $version;
 	$self->{ctime} = $ctime - $EPOCH_1904;
 	$self->{mtime} = $mtime - $EPOCH_1904;
@@ -144,6 +145,18 @@ sub rawread
 	print <<EOT;
     Name:           $name
     Attributes:     @{[sprintf("0x%02x", $attributes)]}
+EOT
+	print " "x19;
+	print " LAUNCHABLE"	if $self->{attributes}{launchable};
+	print " OPEN"		if $self->{attributes}{open};
+	print " RESET"		if $self->{attributes}{reset};
+	print " OKNEWER"	if $self->{attributes}{"OK newer"};
+	print " BACKUP"		if $self->{attributes}{backup};
+	print " APPINFO-DIRTY"	if $self->{attributes}{"AppInfo dirty"};
+	print " READ-ONLY"	if $self->{attributes}{"read-only"};
+	print " RESOURCE"	if $self->{attributes}{resource};
+	print "\n";
+	print <<EOT;
     Version:        $version
     Ctime:          $ctime	@{[scalar(localtime($ctime-$EPOCH_1904))]}
     Mtime:          $mtime	@{[scalar(localtime($mtime-$EPOCH_1904))]}
