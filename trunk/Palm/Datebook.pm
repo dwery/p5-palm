@@ -6,15 +6,16 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.5 2000-05-07 06:30:51 arensb Exp $
+# $Id: Datebook.pm,v 1.6 2000-06-30 15:41:16 arensb Exp $
 
 use strict;
 package Palm::Datebook;
 use Palm::Raw();
+use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.5 $ ))[1];
+$VERSION = (qw( $Revision: 1.6 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -219,10 +220,10 @@ sub new
 				# The PDB is not a resource database by
 				# default, but it's worth emphasizing,
 				# since DatebookDB is explicitly not a PRC.
-	$self->{appinfo} = Palm::StdAppInfo->newStdAppInfo();
-					# Standard AppInfo block
-	$self->{appinfo}{start_of_week} = 0;
-					# XXX - This is bogus
+	$self->{appinfo} = {
+		start_of_week	=> 0,	# XXX - This is bogus
+	};
+	&Palm::StdAppInfo::seed_StdAppInfo($self->{appinfo});
 
 	$self->{sort} = undef;	# Empty sort block
 
