@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.2 1999-11-18 06:20:03 arensb Exp $
+# $Id: Address.pm,v 1.3 1999-12-06 04:11:55 arensb Exp $
 
 package Palm::Address;
 
@@ -511,25 +511,25 @@ This is a scalar, the raw data of the sort block.
 
     $record = $pdb->{"records"}[N];
 
-    $record->{"name"}
-    $record->{"firstName"}
-    $record->{"company"}
-    $record->{"phone1"}
-    $record->{"phone2"}
-    $record->{"phone3"}
-    $record->{"phone4"}
-    $record->{"phone5"}
-    $record->{"address"}
-    $record->{"city"}
-    $record->{"state"}
-    $record->{"zipCode"}
-    $record->{"country"}
-    $record->{"title"}
-    $record->{"custom1"}
-    $record->{"custom2"}
-    $record->{"custom3"}
-    $record->{"custom4"}
-    $record->{"note"}
+    $record->{"fields"}{"name"}
+    $record->{"fields"}{"firstName"}
+    $record->{"fields"}{"company"}
+    $record->{"fields"}{"phone1"}
+    $record->{"fields"}{"phone2"}
+    $record->{"fields"}{"phone3"}
+    $record->{"fields"}{"phone4"}
+    $record->{"fields"}{"phone5"}
+    $record->{"fields"}{"address"}
+    $record->{"fields"}{"city"}
+    $record->{"fields"}{"state"}
+    $record->{"fields"}{"zipCode"}
+    $record->{"fields"}{"country"}
+    $record->{"fields"}{"title"}
+    $record->{"fields"}{"custom1"}
+    $record->{"fields"}{"custom2"}
+    $record->{"fields"}{"custom3"}
+    $record->{"fields"}{"custom4"}
+    $record->{"fields"}{"note"}
 
 These are scalars, the values of the various address book fields.
 
