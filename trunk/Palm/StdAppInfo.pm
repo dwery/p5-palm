@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.16 2002-01-26 22:25:19 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.17 2002-05-09 14:24:39 arensb Exp $
 
 use strict;
 package Palm::StdAppInfo;
@@ -17,7 +17,7 @@ use vars qw( $VERSION @ISA $error );
 	# $error acts like $! in that it reports the error that occurred
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.16 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.17 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -379,8 +379,7 @@ sub pack_StdAppInfo
 			$name = $appinfo->{categories}[$i]{name};
 		}
 
-		$retval .= pack("a" . categoryLength,
-			$appinfo->{categories}[$i]{name});
+		$retval .= pack("a" . categoryLength, $name);
 	}
 
 	# Ditto for category IDs
