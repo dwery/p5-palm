@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.10 2000-08-02 03:17:31 arensb Exp $
+# $Id: Datebook.pm,v 1.11 2000-08-13 22:00:14 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.10 $ ))[1];
+$VERSION = (qw( $Revision: 1.11 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -287,7 +287,7 @@ sub ParseAppInfoBlock
 	# Get the standard parts of the AppInfo block
 	$std_len = &Palm::StdAppInfo::parse_StdAppInfo($appinfo, $data);
 
-	$data = substr $data, $std_len;		# Remove the parsed part
+	$data = $appinfo->{other};		# Look at non-category part
 
 	# Get the rest of the AppInfo block
 	my $unpackstr =		# Argument to unpack(), since it's hairy
@@ -308,11 +308,12 @@ sub PackAppInfoBlock
 	my $self = shift;
 	my $retval;
 
+	# Pack the non-category part of the AppInfo block
+	$self->{appinfo}{other} =
+		pack("x2 C x", $self->{appinfo}{start_of_week});
+
 	# Pack the standard part of the AppInfo block
 	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
-
-	# And the application-specific stuff
-	$retval .= pack("x2 C x", $self->{appinfo}{start_of_week});
 
 	return $retval;
 }

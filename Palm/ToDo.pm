@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ToDo.pm,v 1.7 2000-07-19 03:58:48 arensb Exp $
+# $Id: ToDo.pm,v 1.8 2000-08-13 22:01:28 arensb Exp $
 
 # XXX - Bug: apparently, the first ToDo item shows up with a category
 # of "unfiled"
@@ -18,7 +18,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.7 $ ))[1];
+$VERSION = (qw( $Revision: 1.8 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -184,7 +184,7 @@ sub ParseAppInfoBlock
 	# Get the standard parts of the AppInfo block
 	$std_len = &Palm::StdAppInfo::parse_StdAppInfo($appinfo, $data);
 
-	$data = substr $data, $std_len;		# Remove the parsed part
+	$data = $appinfo->{other};		# Look at the non-category part
 
 	# Get the rest of the AppInfo block
 	my $unpackstr =		# Argument to unpack()
@@ -205,13 +205,13 @@ sub PackAppInfoBlock
 	my $self = shift;
 	my $retval;
 
-	# Pack the standard part of the AppInfo block
-	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
-
-	# And the application-specific stuff
-	$retval .= pack("x2 n Cx",
+	# Pack the application-specific part of the AppInfo block
+	$self->{appinfo}{other} = pack("x2 n Cx",
 		$self->{appinfo}{dirty_appinfo},
 		$self->{appinfo}{sort_order});
+
+	# Pack the AppInfo block
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
 
 	return $retval;
 }

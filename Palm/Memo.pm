@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Memo.pm,v 1.8 2000-07-19 03:58:41 arensb Exp $
+# $Id: Memo.pm,v 1.9 2000-08-13 22:01:07 arensb Exp $
 
 use strict;
 package Palm::Memo;
@@ -14,7 +14,7 @@ use Palm::Raw();
 use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.8 $ ))[1];
+$VERSION = (qw( $Revision: 1.9 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -143,7 +143,7 @@ sub ParseAppInfoBlock
 	# Get the standard parts of the AppInfo block
 	$std_len = &Palm::StdAppInfo::parse_StdAppInfo($appinfo, $data);
 
-	$data = substr $data, $std_len;		# Remove the parsed part
+	$data = $appinfo->{other};		# Look at the non-category part
 
 	# Get the rest of the AppInfo block
 	my $unpackstr =		# Argument to unpack()
@@ -163,11 +163,12 @@ sub PackAppInfoBlock
 	my $retval;
 	my $i;
 
-	# Pack the standard part of the AppInfo block
-	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
+	# Pack the non-category part of the AppInfo block
+	$self->{appinfo}{other} =
+		pack("x4 C x1", $self->{appinfo}{sortOrder});
 
-	# And the application-specific stuff
-	$retval .= pack("x4 C x1", $self->{appinfo}{sortOrder});
+	# Pack the AppInfo block
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
 
 	return $retval;
 }
