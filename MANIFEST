@@ -2,7 +2,6 @@ ChangeLog
 MANIFEST
 Makefile.PL
 test.pl
-Palm/Makefile.PL
 Palm/Address.pm
 Palm/Datebook.pm
 Palm/Mail.pm
