@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 3.5 2002-04-10 00:58:28 arensb Exp $
+# $Id: pdbdump,v 3.6 2004-04-16 01:21:42 christophe Exp $
 
 use strict;
 use Palm::PDB;
@@ -18,7 +18,7 @@ use Palm::ToDo;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 3.5 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 3.6 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
@@ -122,6 +122,8 @@ sub rawread
 	$uniqueIDseed) =
 		unpack "a32 n n N N N N N N a4 a4 N", $buf;
 
+	die "bogus database name! is this really a PalmOS file?" unless $name =~ /.+\0/;
+
 	($self->{name} = $name) =~ s/\0*$//;
 	$self->{attributes}{resource} = 1 if $attributes & 0x0001;
 	$self->{attributes}{"read-only"} = 1 if $attributes & 0x0002;
@@ -142,6 +144,13 @@ sub rawread
 	$self->{type} = $type;
 	$self->{creator} = $creator;
 	$self->{uniqueIDseed} = $uniqueIDseed;
+
+	if( $self->{_appinfo_offset} > $self->{_size} ) {
+		die "AppInfo block offset beyond end of file!";
+	}
+	if( $self->{_sort_offset} > $self->{_size} ) {
+		die "Sort block offset beyond end of file!";
+	}
 
 	print <<EOT;
     Name:           $name
