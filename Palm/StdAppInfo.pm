@@ -6,9 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.9 2000-09-09 04:50:39 arensb Exp $
-
-# XXX - Methods for adding, removing categories
+# $Id: StdAppInfo.pm,v 1.10 2000-09-20 14:16:36 arensb Exp $
 
 use strict;
 package Palm::StdAppInfo;
@@ -18,7 +16,7 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA $error );
 	# $error acts like $! in that it reports the error that occurred
 
-$VERSION = (qw( $Revision: 1.9 $ ))[1];
+$VERSION = (qw( $Revision: 1.10 $ ))[1];
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
