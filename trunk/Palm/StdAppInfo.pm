@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.4 2000-05-13 05:14:45 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.5 2000-06-30 15:40:40 arensb Exp $
 
 # XXX - Write POD
 
@@ -21,7 +21,7 @@ use Palm::Raw();
 # Don't harass me about these variables
 use vars qw( $VERSION @ISA $numCategories $categoryLength $stdAppInfoSize );
 
-$VERSION = (qw( $Revision: 1.4 $ ))[1];
+$VERSION = (qw( $Revision: 1.5 $ ))[1];
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -84,8 +84,8 @@ sub seed_StdAppInfo
 	my $appinfo = shift;
 
 	$appinfo->{renamed} = 0;
-	@{$appinfo->{categories}} = [ "Unfiled" ];
-	@{$appinfo->{uniqueIDs}} = [ 0 ];
+	@{$appinfo->{categories}} = ( "Unfiled" );
+	@{$appinfo->{uniqueIDs}} = ( 0 );
 	$appinfo->{lastUniqueID} = 1;		# 0 means "Unfiled", by
 						# convention
 
