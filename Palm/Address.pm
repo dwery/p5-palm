@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.7 2000-04-24 09:56:09 arensb Exp $
+# $Id: Address.pm,v 1.8 2000-04-24 09:56:58 arensb Exp $
 
 use strict;
 package Palm::Address;
@@ -16,7 +16,7 @@ use Palm::StdAppInfo;
 use vars qw( $VERSION @ISA
 	$numFieldLabels $addrLabelLength @phoneLabels @countries );
 
-$VERSION = (qw( $Revision: 1.7 $ ))[1];
+$VERSION = (qw( $Revision: 1.8 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
@@ -669,9 +669,9 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 
 =head1 SEE ALSO
 
-Palm::PDB(1)
+Palm::PDB(3)
 
-Palm::StdAppInfo(1)
+Palm::StdAppInfo(3)
 
 =head1 BUGS
 
