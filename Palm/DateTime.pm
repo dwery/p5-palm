@@ -126,7 +126,10 @@ sub palmtime_to_secs
 				$palmtime->{'hour'},
 				$palmtime->{'day'},
 				$palmtime->{'month'} - 1,	# Palm used 1-12, mktime needs 0-11 
-				$palmtime->{'year'} - 1900 );
+				$palmtime->{'year'} - 1900,
+				0,
+				0,
+				-1 );
 }
 
 sub secs_to_palmtime
