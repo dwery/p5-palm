@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.12 2001-02-20 11:11:39 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.13 2001-04-05 03:54:01 arensb Exp $
 
 use strict;
 package Palm::StdAppInfo;
@@ -16,7 +16,7 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA $error );
 	# $error acts like $! in that it reports the error that occurred
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.12 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d", '$Revision: 1.13 $ ' =~ m{(\d+)\.(\d+)};
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -302,7 +302,7 @@ sub parse_StdAppInfo
 If your application's AppInfo block contains standard category support
 and nothing else, you may choose to just inherit this method instead
 of writing your own C<ParseAppInfoBlock> method. Otherwise, see the
-example in the L<"SYNOPSIS">.
+example in L<"SYNOPSIS">.
 
 =cut
 #'
