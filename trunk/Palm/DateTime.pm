@@ -22,7 +22,7 @@ use Exporter;
 use POSIX;
 
 # One liner, to allow MakeMaker to work.
-$Palm::DateTime::VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$Palm::DateTime::VERSION = do { my @r = (q$Revision: 1.4 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @Palm::DateTime::ISA = qw( Exporter );
 
@@ -47,7 +47,7 @@ $Palm::DateTime::VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf "
 
 sub datetime_to_palmtime
 {
-	my ( $datetime ) = @_;
+	my ($datetime) = @_;
 
 	my $palmtime = {};
 
@@ -69,7 +69,7 @@ sub datetime_to_palmtime
 
 sub dlptime_to_palmtime
 {
-	my ( $dlptime ) = @_;
+	my ($dlptime) = @_;
 
 	my $palmtime = {};
 
@@ -92,7 +92,7 @@ sub dlptime_to_palmtime
 
 sub palmtime_to_dlptime
 {
-	my ( $palmtime ) = @_;
+	my ($palmtime) = @_;
 
 	return pack("nCCCCCx", @$palmtime
 				{
@@ -102,26 +102,26 @@ sub palmtime_to_dlptime
 					'hour',
 					'minute',
 					'second',
-				} );
+				});
 }
 
 sub secs_to_dlptime
 {
-	my ( $secs ) = @_;
+	my ($secs) = @_;
 
-	return palmtime_to_dlptime( secs_to_palmtime($secs) );
+	return palmtime_to_dlptime(secs_to_palmtime($secs));
 } 
 
 sub dlptime_to_secs
 {
-	my ( $dlptime ) = @_;
+	my ($dlptime) = @_;
 
-	return palmtime_to_secs( dlptime_to_palmtime($dlptime) );
+	return palmtime_to_secs(dlptime_to_palmtime($dlptime));
 }
 
 sub palmtime_to_secs
 {
-	my ( $palmtime ) = @_;
+	my ($palmtime) = @_;
 
 	return POSIX::mktime(	$palmtime->{'second'},
 				$palmtime->{'minute'},
@@ -131,12 +131,12 @@ sub palmtime_to_secs
 				$palmtime->{'year'} - 1900,
 				0,
 				0,
-				-1 );
+				-1);
 }
 
 sub secs_to_palmtime
 {
-	my ( $secs ) = @_;
+	my ($secs) = @_;
 
 	my $palmtime = {};
 
@@ -160,7 +160,7 @@ sub secs_to_palmtime
 # This one gives out something like 20011116200051
 sub palmtime_to_ascii
 {
-	my ( $palmtime ) = @_;
+	my ($palmtime) = @_;
 
 	return sprintf("%4d%02d%02d%02d%02d%02d",
 		@$palmtime
@@ -171,15 +171,15 @@ sub palmtime_to_ascii
 			'hour',
 			'minute',
 			'second',
-		} );
+		});
 }
-
-# IS8601 compliant (?): 2001-11-16 20:00:51
+# IS8601 compliant: 2001-11-16T20:00:51Z
+# GMT timezone ("Z") is assumed. XXX ?
 sub palmtime_to_iso8601
 {
-	my ( $palmtime ) = @_;
+	my ($palmtime) = @_;
 
-	return sprintf("%4d-%02d-%02d %02d:%02d:%02d",
+	return sprintf("%4d-%02d-%02dT%02d:%02d:%02dZ",
 		@$palmtime
 		{
 			'year',
@@ -188,7 +188,7 @@ sub palmtime_to_iso8601
 			'hour',
 			'minute',
 			'second',
-		} );
+		});
 }
 
 1;
