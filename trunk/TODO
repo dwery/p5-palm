@@ -17,3 +17,5 @@
 - Add PQA parser.
 - Make $VERSION be a floating-point number. See mail from Andreas J.
   Koenig <andreas.koenig@anima.de>
+- new palmOne databases: Calendar, Contacts, Tasks
+
