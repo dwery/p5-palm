@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Utility to dump the contents of a PDB.
 #
-# $Id: dumpdb,v 1.5 2000-04-24 10:01:44 arensb Exp $
+# $Id: dumpdb,v 1.6 2000-05-13 05:15:15 arensb Exp $
 use strict;
 
 use Palm::Raw;
@@ -31,6 +31,7 @@ sub Dump
 
 	print "AppInfo block: [$pdb->{appinfo}]\n"
 		if exists($pdb->{"appinfo"});
+	&DumpAppInfo($pdb->{"appinfo"});
 	print "Sort block: [$pdb->{sort}]\n"
 		if exists($pdb->{"sort"});
 
@@ -62,6 +63,16 @@ sub Dump
 		while (($key, $data) = each %{$record})
 		{
 			print "\t[$key] -> [$data]\n";
+			if (ref($data) eq "HASH")
+			{
+				my $key2;
+				my $data2;
+
+				while (($key2, $data2) = each %{$data})
+				{
+					print "\t\t[$key2] -> [$data2]\n";
+				}
+			}
 		}
 	}
 }
@@ -345,3 +356,29 @@ sub Dump
 		print "\tScore: [$score]\n";
 	}
 }
+
+package Palm::ToDo;
+
+sub DumpAppInfo
+{
+	my $appinfo = shift;
+	my $key;
+	my $value;
+
+	print STDERR "Inside Palm::Raw::DumpAppInfo\n";
+	while (($key, $value) = each %{$appinfo})
+	{
+		print "    [$key] -> ";
+		if (ref($value) eq "")
+		{
+			print "[$value]\n";
+		} elsif (ref($value) eq "SCALAR")
+		{
+			print "[${$value}]\n";
+		} elsif (ref($value) eq "ARRAY")
+		{
+			print "[@{$value}]\n";
+		}
+	}
+}
+
