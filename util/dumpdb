@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Utility to dump the contents of a PDB.
 #
-# $Id: dumpdb,v 1.2 1999-11-18 05:23:06 arensb Exp $
+# $Id: dumpdb,v 1.3 1999-11-18 08:29:32 arensb Exp $
 use strict;
 
 use Palm::Raw;
@@ -10,8 +10,6 @@ use Palm::Address;
 use Palm::Datebook;
 use Palm::Mail;
 use Palm::ToDo;
-use Bitmaps;
-use DopeWars;
 
 &Palm::PDB::RegisterPRCHandlers("Palm::Raw", "");
 
