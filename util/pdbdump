@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 2.4 2000-09-16 23:57:49 arensb Exp $
+# $Id: pdbdump,v 3.1 2000-09-24 16:37:00 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -17,10 +17,14 @@ use Palm::ToDo;
 
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
-$VERSION = (qw( $Revision: 2.4 $ ))[1];
+$VERSION = (qw( $Revision: 3.1 $ ))[1];
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
+
+&Palm::PDB::RegisterPRCHandlers("Palm::Raw",
+	[ "", "" ],
+	);
 
 $hexdump = 1;			# By default, print hex dumps of everything
 
@@ -340,10 +344,14 @@ sub _load_rsrc_index
 	my $fh = shift;		# Input file handle
 	my $i;
 
+	print "Resource index:\n";
+
 	# Read each resource index entry in turn
 	for ($i = 0; $i < $pdb->{_numrecs}; $i++)
 	{
 		my $buf;		# Input buffer
+
+		print "  Resource index entry $i\n";
 
 		# Read the next resource index entry
 		my $type;
@@ -352,12 +360,24 @@ sub _load_rsrc_index
 		my $entry = {};		# Parsed index entry
 
 		read $fh, $buf, $IndexRsrcLen;
+		if ($hexdump)
+		{
+			&hexdump("   ", $buf);
+			print "\n";
+		}
 
 		($type, $id, $offset) = unpack "a4 n N", $buf;
 
 		$entry->{type} = $type;
 		$entry->{id} = $id;
 		$entry->{offset} = $offset;
+
+		print <<EOT;
+    Offset:         $offset
+    ID:             $id
+    Type:           $type
+
+EOT
 
 		push @{$pdb->{_index}}, $entry;
 	}
@@ -575,11 +595,14 @@ sub _load_resources
 	my $fh = shift;		# Input file handle
 	my $i;
 
+	print "Resources:\n";
 	# Read each resource in turn
 	for ($i = 0; $i < $pdb->{_numrecs}; $i++)
 	{
 		my $len;	# Length of record
 		my $buf;	# Input buffer
+
+		print "  Resource $i\n";
 
 		# Sanity check: make sure we're where we think we
 		# should be.
@@ -614,6 +637,11 @@ sub _load_resources
 
 		# Read the resource
 		read $fh, $buf, $len;
+		if ($hexdump)
+		{
+			&hexdump("   ", $buf);
+			print "\n";
+		}
 
 		# Tell the real class to parse the resource data. Pass
 		# &ParseResource all of the information from the
@@ -626,6 +654,10 @@ sub _load_resources
 			"data"	=> $buf,
 			);
 		push @{$pdb->{resources}}, $resource;
+
+		# Print out the parsed values
+		&dumphash($resource, "\t");
+		print "\n";
 	}
 }
 
