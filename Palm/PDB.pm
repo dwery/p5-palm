@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.21 2002-01-26 22:25:16 arensb Exp $
+# $Id: PDB.pm,v 1.22 2002-02-01 14:09:27 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -17,14 +17,15 @@
 #	Optional AppInfo block
 #	Optional sort block
 #	Records/resources
-# See "pdb.info" (from the ColdSync documentation) for details.
+# See http://www.palmos.com/dev/tech/docs/fileformats.zip
+# for details.
 
 use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.21 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.22 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 =head1 NAME
 
