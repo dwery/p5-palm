@@ -1,0 +1,14 @@
+ChangeLog
+MANIFEST
+README
+Makefile.PL
+test.pl
+Palm/Address.pm
+Palm/Datebook.pm
+Palm/Mail.pm
+Palm/Memo.pm
+Palm/PDB.pm
+Palm/Raw.pm
+Palm/ToDo.pm
+util/copydb
+util/dumpdb
