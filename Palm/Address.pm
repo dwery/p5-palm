@@ -6,10 +6,10 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.5 2000-02-01 12:19:28 arensb Exp $
+# $Id: Address.pm,v 1.6 2000-02-02 04:18:40 arensb Exp $
 
 package Palm::Address;
-($VERSION) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+($VERSION) = '$Revision: 1.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # AddressDB records are quite flexible and customizable, and therefore
 # a pain in the ass to deal with correctly.
@@ -243,6 +243,7 @@ sub new
 		renamed		=> 0,	# Dunno what this is
 		categories	=> [],	# List of category names
 		uniqueIDs	=> [],	# List of category IDs
+# XXX		lastUniqueID	=> ?
 		fieldLabels	=> {
 			# Displayed labels for the various fields in
 			# each address record.
@@ -280,6 +281,7 @@ sub new
 		misc		=> 0,
 	};
 
+	# Make sure there are $numCategories categories
 	$#{$self->{"appinfo"}{"categories"}} = $numCategories-1;
 	$#{$self->{"appinfo"}{"uniqueIDs"}} = $numCategories-1;
 
