@@ -12,10 +12,10 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Raw.pm,v 1.5 2000-02-02 04:21:01 arensb Exp $
+# $Id: Raw.pm,v 1.6 2000-05-06 21:19:02 arensb Exp $
 
 package Palm::Raw;
-($VERSION) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+($VERSION) = '$Revision: 1.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 =head1 NAME
 
@@ -180,6 +180,6 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 
 =head1 SEE ALSO
 
-Palm::PDB(1)
+Palm::PDB(3)
 
 =cut
