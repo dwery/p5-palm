@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.3 2000-05-07 06:33:56 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.4 2000-05-13 05:14:45 arensb Exp $
 
 # XXX - Write POD
 
@@ -21,7 +21,7 @@ use Palm::Raw();
 # Don't harass me about these variables
 use vars qw( $VERSION @ISA $numCategories $categoryLength $stdAppInfoSize );
 
-$VERSION = (qw( $Revision: 1.3 $ ))[1];
+$VERSION = (qw( $Revision: 1.4 $ ))[1];
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -59,6 +59,13 @@ $stdAppInfoSize = 2 +		# Length of a standard AppInfo block
 		($categoryLength * $numCategories) +
 		$numCategories +
 		1 + 1;
+
+sub import
+{
+	&Palm::PDB::RegisterPDBHandlers(__PACKAGE__,
+		[ "", "" ],
+		);
+}
 
 =head2 seed_StdAppInfo
 
