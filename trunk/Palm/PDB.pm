@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.5 2000-01-23 09:18:55 arensb Exp $
+# $Id: PDB.pm,v 1.6 2000-02-01 12:31:30 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -20,7 +20,7 @@
 # See "pdb.info" (from the ColdSync documentation) for details.
 
 package Palm::PDB;
-($VERSION) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
+($VERSION) = '$Revision: 1.6 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 =head1 NAME
 
@@ -69,8 +69,8 @@ my $RecIndexHeaderLen = 6;		# Size of record index header
 my $IndexRecLen = 8;			# Length of record index entry
 my $IndexRsrcLen = 10;			# Length of resource index entry
 
-my %PDBHandlers = ();			# Record handler map
-my %PRCHandlers = ();			# Resource handler map
+%PDBHandlers = ();			# Record handler map
+%PRCHandlers = ();			# Resource handler map
 
 =head2 new
 
@@ -1163,7 +1163,11 @@ If given a reference to a record, appends that record to
 
 Returns a reference to the newly-appended record.
 
+This method updates $pdb's "last modification" time.
+
 =cut
+#'
+
 # append_Record
 # Append the given records to the database's list of records. If no
 # records are given, create one, append it, and return a reference to
@@ -1179,12 +1183,18 @@ sub append_Record
 
 		push @{$self->{"records"}}, $record;
 
+		# Update the "last modification time".
+		$self->{"mtime"} = time;
+
 		return $record;
 	}
 
 	# At least one argument was given. Append all of the arguments
 	# to the list of records, and return the first one.
 	push @{$self->{"records"}}, @_;
+
+	# Update the "last modification time".
+	$self->{"mtime"} = time;
 
 	return $_[0];
 }
@@ -1228,7 +1238,10 @@ If given a reference to a resource, appends that resource to
 
 Returns a reference to the newly-appended resource.
 
+This method updates $pdb's "last modification" time.
+
 =cut
+#'
 
 # append_Resource
 # Append the given resources to the database's list of resources. If no
@@ -1245,12 +1258,18 @@ sub append_Resource
 
 		push @{$self->{"resources"}}, $resource;
 
+		# Update the "last modification time".
+		$self->{"mtime"} = time;
+
 		return $resource;
 	}
 
 	# At least one argument was given. Append all of the arguments
 	# to the list of resources, and return the first one.
 	push @{$self->{"resources"}}, @_;
+
+	# Update the "last modification time".
+	$self->{"mtime"} = time;
 
 	return $_[0];
 }
@@ -1284,9 +1303,9 @@ sub findRecordByID
 	return undef;			# Not found
 }
 
-=head2 deleteRecord
+=head2 delete_Record
 
-  $pdb->deleteRecord($record, $expunge);
+  $pdb->delete_Record($record, $expunge);
 
 Marks $record for deletion, so that it will be deleted from the
 database at the next sync.
@@ -1295,15 +1314,18 @@ If $expunge is false or omitted, the record will be marked
 for deletion with archival. If $expunge is true, the record will be
 marked for deletion without archival.
 
-=cut
+This method updates $pdb's "last modification" time.
 
-# deleteRecord
-# $pdb->deleteRecord($record ?, $expunge?)
+=cut
+#'
+
+# delete_Record
+# $pdb->delete_Record($record ?, $expunge?)
 #
 # Mark the given record for deletion. If $expunge is true, mark the
 # record for deletion without an archive.
 
-sub deleteRecord
+sub delete_Record
 {
 	my $self = shift;
 	my $record = shift;
@@ -1318,6 +1340,9 @@ sub deleteRecord
 		$record->{"attributes"}{"expunged"} = 0;
 		$record->{"attributes"}{"archive"} = 1;
 	}
+
+	# Update the "last modification time".
+	$self->{"mtime"} = time;
 }
 
 1;
@@ -1476,9 +1501,6 @@ PackResource() is never called when writing a record database.
 These functions die too easily. They should return an error code.
 
 Database manipulation is still an arcane art.
-
-Helper classes currently need to be subclasses of Palm::PDB. This is
-unnecessary.
 
 It may be possible to parse sort blocks further.
 
