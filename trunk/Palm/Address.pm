@@ -2,18 +2,157 @@
 # 
 # Perl class for dealing with Palm AddressBook databases. 
 #
-#	Copyright (C) 1999, Andrew Arensburger.
+#	Copyright (C) 1999, 2000, Andrew Arensburger.
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.4 2000-01-23 06:24:05 arensb Exp $
+# $Id: Address.pm,v 1.5 2000-02-01 12:19:28 arensb Exp $
 
 package Palm::Address;
+($VERSION) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # AddressDB records are quite flexible and customizable, and therefore
 # a pain in the ass to deal with correctly.
 
 # XXX - Methods for adding, removing categories.
+
+=head1 NAME
+
+Palm::Address - Handler for Palm AddressBook databases.
+
+=head1 SYNOPSIS
+
+    use Palm::Address;
+
+=head1 DESCRIPTION
+
+The Address PDB handler is a helper class for the Palm::PDB package.
+It parses AddressBook databases.
+
+=head2 AppInfo block
+
+    $pdb->{"appinfo"}{"renamed"}
+
+A scalar. I think this is a bitmap of category names that have changed
+since the last sync.
+
+    @{$pdb->{"appinfo"}{"categories"}}
+
+Array of category names.
+
+    @{$pdb->{"appinfo"}{"uniqueIDs"}}
+
+Array of category IDs. By convention, categories created on the Palm
+have IDs in the range 0-127, and categories created on the desktop
+have IDs in the range 128-255.
+
+    $pdb->{"appinfo"}{"lastUniqueID"}
+    $pdb->{"appinfo"}{"dirtyFields"}
+
+I don't know what these are.
+
+    $pdb->{"appinfo"}{"fieldLabels"}{"name"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"firstName"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"company"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"phone1"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"phone2"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"phone3"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"phone4"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"phone5"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"phone6"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"phone7"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"phone8"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"address"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"city"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"state"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"zipCode"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"country"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"title"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"custom1"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"custom2"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"custom3"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"custom4"}
+    $pdb->{"appinfo"}{"fieldLabels"}{"note"}
+
+These are the names of the various fields in the address record.
+
+    $pdb->{"appinfo"}{"country"}
+
+An integer: the code for the country for which these labels were
+designed. The country name is available as
+
+        $Palm::Address::countries[$pdb->{"appinfo"}{"country"}];
+
+    $pdb->{"appinfo"}{"misc"}
+
+An integer. The least-significant bit is a flag that indicates whether
+the database should be sorted by company. The other bits are reserved.
+
+=head2 Sort block
+
+    $pdb->{"sort"}
+
+This is a scalar, the raw data of the sort block.
+
+=head2 Records
+
+    $record = $pdb->{"records"}[N];
+
+    $record->{"fields"}{"name"}
+    $record->{"fields"}{"firstName"}
+    $record->{"fields"}{"company"}
+    $record->{"fields"}{"phone1"}
+    $record->{"fields"}{"phone2"}
+    $record->{"fields"}{"phone3"}
+    $record->{"fields"}{"phone4"}
+    $record->{"fields"}{"phone5"}
+    $record->{"fields"}{"address"}
+    $record->{"fields"}{"city"}
+    $record->{"fields"}{"state"}
+    $record->{"fields"}{"zipCode"}
+    $record->{"fields"}{"country"}
+    $record->{"fields"}{"title"}
+    $record->{"fields"}{"custom1"}
+    $record->{"fields"}{"custom2"}
+    $record->{"fields"}{"custom3"}
+    $record->{"fields"}{"custom4"}
+    $record->{"fields"}{"note"}
+
+These are scalars, the values of the various address book fields.
+
+    $record->{"phoneLabel"}{"phone1"}
+    $record->{"phoneLabel"}{"phone2"}
+    $record->{"phoneLabel"}{"phone3"}
+    $record->{"phoneLabel"}{"phone4"}
+    $record->{"phoneLabel"}{"phone5"}
+
+Most fields in an AddressBook record are straightforward: the "name"
+field always gives the person's last name.
+
+The "phoneI<N>" fields, on the other hand, can mean different things
+in different records. There are five such fields in each record, each
+of which can take on one of eight different values: "Work", "Home",
+"Fax", "Other", "E-mail", "Main", "Pager" and "Mobile".
+
+The $record->{"phoneLabel"}{"phone*"} fields are integers. Each one is
+an index into @Palm::Address::phoneLabels, and indicates which
+particular type of phone number each of the $record->{"phone*"} fields
+represents.
+
+    $record->{"phoneLabel"}{"display"}
+
+Like the phone* fields above, this is an index into
+@Palm::Address::phoneLabels. It indicates which of the phone*
+fields to display in the list view.
+
+    $record->{"phoneLabel"}{"reserved"}
+
+I don't know what this is.
+
+=head1 METHODS
+
+=cut
+#'
 
 use Palm::Raw();
 
@@ -70,7 +209,18 @@ sub import
 		);
 }
 
-# XXX - Document this
+=head2 new
+
+  $pdb = new Palm::Address;
+
+Create a new PDB, initialized with the various Palm::Address fields
+and an empty record list.
+
+Use this method if you're creating an Address PDB from scratch.
+
+=cut
+#'
+
 # new
 # Create a new Palm::Address database, and return it
 sub new
@@ -130,6 +280,14 @@ sub new
 		misc		=> 0,
 	};
 
+	$#{$self->{"appinfo"}{"categories"}} = $numCategories-1;
+	$#{$self->{"appinfo"}{"uniqueIDs"}} = $numCategories-1;
+
+	# If nothing else, there should be an "Unfiled" category, with
+	# ID 0.
+	$self->{"appinfo"}{"categories"}[0] = "Unfiled";
+	$self->{"appinfo"}{"uniqueIDs"}[0] = 0;
+
 	# Give the PDB a blank sort block
 	$self->{"sort"} = undef;
 
@@ -139,7 +297,13 @@ sub new
 	return $self;
 }
 
-# XXX - Document this
+=head2 new_Record
+
+  $record = $pdb->new_Record;
+
+Creates a new Address record, with blank values for all of the fields.
+
+=cut
 
 # new_Record
 # Create a new, initialized record.
@@ -551,139 +715,6 @@ sub PackRecord
 1;
 __END__
 
-=head1 NAME
-
-Palm::Address - Handler for Palm AddressBook databases.
-
-=head1 SYNOPSIS
-
-    use Palm::Address;
-
-=head1 DESCRIPTION
-
-The Address PDB handler is a helper class for the Palm::PDB package.
-It parses AddressBook databases.
-
-=head2 AppInfo block
-
-    $pdb->{"appinfo"}{"renamed"}
-
-A scalar. I think this is a bitmap of category names that have changed
-since the last sync.
-
-    @{$pdb->{"appinfo"}{"categories"}}
-
-Array of category names.
-
-    @{$pdb->{"appinfo"}{"uniqueIDs"}}
-
-Array of category IDs. By convention, categories created on the Palm
-have IDs in the range 0-127, and categories created on the desktop
-have IDs in the range 128-255.
-
-    $pdb->{"appinfo"}{"lastUniqueID"}
-    $pdb->{"appinfo"}{"dirtyFields"}
-
-I don't know what these are.
-
-    $pdb->{"appinfo"}{"fieldLabels"}{"name"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"firstName"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"company"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone1"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone2"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone3"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone4"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone5"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone6"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone7"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone8"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"address"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"city"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"state"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"zipCode"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"country"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"title"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"custom1"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"custom2"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"custom3"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"custom4"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"note"}
-
-These are the names of the various fields in the address record.
-
-    $pdb->{"appinfo"}{"country"}
-
-An integer: the code for the country for which these labels were
-designed. The country name is available as
-
-        $Palm::Address::countries[$pdb->{"appinfo"}{"country"}];
-
-    $pdb->{"appinfo"}{"misc"}
-
-An integer. The least-significant bit is a flag that indicates whether
-the database should be sorted by company. The other bits are reserved.
-
-=head2 Sort block
-
-    $pdb->{"sort"}
-
-This is a scalar, the raw data of the sort block.
-
-=head2 Records
-
-    $record = $pdb->{"records"}[N];
-
-    $record->{"fields"}{"name"}
-    $record->{"fields"}{"firstName"}
-    $record->{"fields"}{"company"}
-    $record->{"fields"}{"phone1"}
-    $record->{"fields"}{"phone2"}
-    $record->{"fields"}{"phone3"}
-    $record->{"fields"}{"phone4"}
-    $record->{"fields"}{"phone5"}
-    $record->{"fields"}{"address"}
-    $record->{"fields"}{"city"}
-    $record->{"fields"}{"state"}
-    $record->{"fields"}{"zipCode"}
-    $record->{"fields"}{"country"}
-    $record->{"fields"}{"title"}
-    $record->{"fields"}{"custom1"}
-    $record->{"fields"}{"custom2"}
-    $record->{"fields"}{"custom3"}
-    $record->{"fields"}{"custom4"}
-    $record->{"fields"}{"note"}
-
-These are scalars, the values of the various address book fields.
-
-    $record->{"phoneLabel"}{"phone1"}
-    $record->{"phoneLabel"}{"phone2"}
-    $record->{"phoneLabel"}{"phone3"}
-    $record->{"phoneLabel"}{"phone4"}
-    $record->{"phoneLabel"}{"phone5"}
-
-Most fields in an AddressBook record are straightforward: the "name"
-field always gives the person's last name.
-
-The "phoneI<N>" fields, on the other hand, can mean different things
-in different records. There are five such fields in each record, each
-of which can take on one of eight different values: "Work", "Home",
-"Fax", "Other", "E-mail", "Main", "Pager" and "Mobile".
-
-The $record->{"phoneLabel"}{"phone*"} fields are integers. Each one is
-an index into @Palm::Address::phoneLabels, and indicates which
-particular type of phone number each of the $record->{"phone*"} fields
-represents.
-
-    $record->{"phoneLabel"}{"display"}
-
-Like the phone* fields above, this is an index into
-@Palm::Address::phoneLabels. It indicates which of the phone*
-fields to display in the list view.
-
-    $record->{"phoneLabel"}{"reserved"}
-
-I don't know what this is.
-
 =head1 AUTHOR
 
 Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
@@ -691,5 +722,10 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 =head1 SEE ALSO
 
 Palm::PDB(1)
+
+=head1 BUGS
+
+The new() method initializes the AppInfo block with English labels and
+"United States" as the country.
 
 =cut
