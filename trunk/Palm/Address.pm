@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.18 2002-11-03 16:43:16 azummo Exp $
+# $Id: Address.pm,v 1.19 2002-11-07 14:11:42 arensb Exp $
 
 use strict;
 package Palm::Address;
@@ -18,9 +18,9 @@ use vars qw( $VERSION @ISA
 	%fieldMapBits );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.18 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.19 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
-@ISA = qw( Palm::Raw Palm::StdAppInfo );
+@ISA = qw( Palm::StdAppInfo Palm::Raw );
 
 # AddressDB records are quite flexible and customizable, and therefore
 # a pain in the ass to deal with correctly.

@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.15 2002-11-03 16:43:16 azummo Exp $
+# $Id: Mail.pm,v 1.16 2002-11-07 14:11:59 arensb Exp $
 
 use strict;
 package Palm::Mail;
@@ -15,9 +15,9 @@ use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.15 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.16 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
-@ISA = qw( Palm::Raw Palm::StdAppInfo );
+@ISA = qw( Palm::StdAppInfo Palm::Raw );
 
 =head1 NAME
 
