@@ -48,3 +48,4 @@ etc., please send mail to the maintainer, Andrew Arensburger, at
 		attribute.
 	Kenneth Lorber <keni@his.com>: fixed "pdbdump" to handle
 		arrays in parsed records (e.g., Datebook exceptions).
+	Kurt Starsinic <kstar@cpan.org>: documentation patch.
