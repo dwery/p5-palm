@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.29 2002-11-03 16:43:16 azummo Exp $
+# $Id: PDB.pm,v 1.30 2003-08-03 17:06:22 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.29 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.30 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 =head1 NAME
 
@@ -1329,7 +1329,7 @@ sub append_Record
 	return $_[0];
 }
 
-=head2
+=head2 new_Resource
 
   $resource = Palm::PDB->new_Resource();
   $resource = new_Resource Palm::PDB;
