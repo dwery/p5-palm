@@ -12,87 +12,10 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Raw.pm,v 1.4 2000-02-01 12:31:41 arensb Exp $
+# $Id: Raw.pm,v 1.5 2000-02-02 04:21:01 arensb Exp $
 
 package Palm::Raw;
-($VERSION) = '$Revision: 1.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
-
-use Palm::PDB;
-
-@ISA = qw( Palm::PDB );
-
-sub import
-{
-	# This package handles any PDB.
-	&Palm::PDB::RegisterPDBHandlers(__PACKAGE__,
-		[ "", "" ]
-		);
-}
-
-sub ParseAppInfoBlock
-{
-	my $self = shift;
-	my $data = shift;
-
-	return $data;
-}
-
-sub ParseSortBlock
-{
-	my $self = shift;
-	my $data = shift;
-
-	return $data;
-}
-
-sub ParseRecord
-{
-	my $self = shift;
-	my %record = @_;
-
-	return \%record;
-}
-
-sub ParseResource
-{
-	my $self = shift;
-	my %resource = @_;
-
-	return \%resource;
-}
-
-sub PackAppInfoBlock
-{
-	my $self = shift;
-
-	return $self->{"appinfo"};
-}
-
-sub PackSortBlock
-{
-	my $self = shift;
-
-	return $self->{"sort"};
-}
-
-sub PackRecord
-{
-	my $self = shift;
-	my $record = shift;
-
-	return $record->{"data"};
-}
-
-sub PackResource
-{
-	my $self = shift;
-	my $resource = shift;
-
-	return $resource->{"data"};
-}
-
-1;
-__END__
+($VERSION) = '$Revision: 1.5 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 =head1 NAME
 
@@ -166,6 +89,90 @@ record.
 
 Each element in the "resources" array is a scalar, the raw data of
 that resource.
+
+=cut
+#'
+
+use Palm::PDB;
+
+@ISA = qw( Palm::PDB );
+
+sub import
+{
+	# This package handles any PDB.
+	&Palm::PDB::RegisterPDBHandlers(__PACKAGE__,
+		[ "", "" ]
+		);
+}
+
+# sub new
+# sub new_Record
+# These are just inherited.
+
+sub ParseAppInfoBlock
+{
+	my $self = shift;
+	my $data = shift;
+
+	return $data;
+}
+
+sub ParseSortBlock
+{
+	my $self = shift;
+	my $data = shift;
+
+	return $data;
+}
+
+sub ParseRecord
+{
+	my $self = shift;
+	my %record = @_;
+
+	return \%record;
+}
+
+sub ParseResource
+{
+	my $self = shift;
+	my %resource = @_;
+
+	return \%resource;
+}
+
+sub PackAppInfoBlock
+{
+	my $self = shift;
+
+	return $self->{"appinfo"};
+}
+
+sub PackSortBlock
+{
+	my $self = shift;
+
+	return $self->{"sort"};
+}
+
+sub PackRecord
+{
+	my $self = shift;
+	my $record = shift;
+
+	return $record->{"data"};
+}
+
+sub PackResource
+{
+	my $self = shift;
+	my $resource = shift;
+
+	return $resource->{"data"};
+}
+
+1;
+__END__
 
 =head1 AUTHOR
 
