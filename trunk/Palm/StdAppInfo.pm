@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.19 2002-11-07 14:27:28 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.20 2004-07-07 02:36:16 christophe Exp $
 
 use strict;
 package Palm::StdAppInfo;
@@ -17,7 +17,7 @@ use vars qw( $VERSION @ISA $error );
 	# $error acts like $! in that it reports the error that occurred
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.19 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.20 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @ISA = qw( Palm::Raw );
 
@@ -286,6 +286,9 @@ sub parse_StdAppInfo
 	my @labels;		# Array of category labels
 	my @uniqueIDs;		# Array of category IDs
 	my $lastUniqueID;	# Not sure what this is
+
+	return undef
+		if length $data < 4+(categoryLength*numCategories)+numCategories;
 
 	if (!defined($nopadding))
 	{
