@@ -1,0 +1,13 @@
+- Add PRC support. Unlike PDBs, the thing to do here is to have
+  registered handlers for various resource types.
+- Add methods for adding, removing categories, when the AppInfo block
+  uses the standard layout.
+	Possibly define Palm::RAW::std_addCategory, std_deleteCategory
+  (or something) and let the modules that inherit "Raw" say
+	*addCategory = *std_addCategory;
+	*deleteCategory = *std_deleteCategory;
+  and inherit those.
+	Or maybe add a ":std-categories" argument to &import that'll
+  export Palm::RAW::std_addCategory to <caller>::addCategory.
+	Or maybe just do it by hand:
+	sub Palm::Address::addCategory { return Palm::Raw::std_addCategory; }
