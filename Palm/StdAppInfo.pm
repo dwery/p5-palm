@@ -6,9 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.5 2000-06-30 15:40:40 arensb Exp $
-
-# XXX - Write POD
+# $Id: StdAppInfo.pm,v 1.6 2000-08-13 21:59:23 arensb Exp $
 
 # XXX - Describe the fields that StdAppInfo creates
 
@@ -21,7 +19,7 @@ use Palm::Raw();
 # Don't harass me about these variables
 use vars qw( $VERSION @ISA $numCategories $categoryLength $stdAppInfoSize );
 
-$VERSION = (qw( $Revision: 1.5 $ ))[1];
+$VERSION = (qw( $Revision: 1.6 $ ))[1];
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -53,6 +51,7 @@ A standard AppInfo block begins with:
 =cut
 #'
 
+# XXX - Use 'use constant' for these.
 $numCategories = 16;		# Number of categories in AppInfo block
 $categoryLength = 16;		# Length of category names
 $stdAppInfoSize = 2 +		# Length of a standard AppInfo block
@@ -72,6 +71,8 @@ sub import
     &Palm::StdAppInfo::seed_StdAppInfo(\%appinfo);
 
 Creates the standard fields in an existing AppInfo hash.
+
+Note: this is not a method.
 
 =cut
 
@@ -139,8 +140,8 @@ sub new
 
     $len = &Palm::StdAppInfo::parse_StdAppInfo(\%appinfo, $data);
 
-This function is intended to be called from within a PDB helper class's
-C<ParseAppInfoBlock> method.
+This function (this is not a method) is intended to be called from
+within a PDB helper class's C<ParseAppInfoBlock> method.
 
 C<parse_StdAppInfo()> parses a standard AppInfo block from the raw
 data C<$data> and fills in the fields in C<%appinfo>. It returns the
@@ -195,6 +196,11 @@ sub parse_StdAppInfo
 	$appinfo->{uniqueIDs} = [ @uniqueIDs ];
 	$appinfo->{lastUniqueID} = $lastUniqueID;
 
+	# There might be other stuff in the AppInfo block other than
+	# the standard categories. Put everything else in
+	# $appinfo->{other}.
+	$appinfo->{other} = substr($data, $stdAppInfoSize);
+
 	return $stdAppInfoSize;
 }
 
@@ -225,8 +231,8 @@ sub ParseAppInfoBlock
 
     $data = &Palm::StdAppInfo::pack_StdAppInfo(\%appinfo);
 
-This function is intended to be called from within a PDB helper class's
-C<PackAppInfoBlock> method.
+This function (this is not a method) is intended to be called from
+within a PDB helper class's C<PackAppInfoBlock> method.
 
 C<pack_StdAppInfo> takes an AppInfo hash and packs it as a string of
 raw data that can be written to a PDB.
@@ -265,6 +271,8 @@ sub pack_StdAppInfo
 
 	# Last unique ID, and alignment padding
 	$retval .= pack("Cx", $appinfo->{lastUniqueID});
+
+	$retval .= $appinfo->{other} if defined($appinfo->{other});
 
 	return $retval;
 }
