@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.17 2000-09-24 16:26:00 arensb Exp $
+# $Id: PDB.pm,v 1.18 2000-09-25 05:05:24 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.17 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d", '$Revision: 1.18 $ ' =~ m{(\d+)\.(\d+)};
 
 =head1 NAME
 
@@ -103,6 +103,7 @@ sub new
 		"OK newer"	=> 0,
 		reset		=> 0,
 		open		=> 0,
+		launchable	=> 0,	# For PQAs
 	};
 	$self->{version} = 0;
 
@@ -336,8 +337,12 @@ The name of the database.
 
 =item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"open"Z<>}
 
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"launchable"Z<>}
+
 These are the attribute flags from the database header. Each is true
 iff the corresponding flag is set.
+
+The "launchable" attribute is set on PQAs.
 
 =item $pdb-E<gt>{Z<>"version"Z<>}
 
@@ -453,6 +458,7 @@ sub Load
 	$self->{attributes}{"OK newer"} = 1 if $attributes & 0x0010;
 	$self->{attributes}{reset} = 1 if $attributes & 0x0020;
 	$self->{attributes}{open} = 1 if $attributes & 0x0040;
+	$self->{attributes}{launchable} = 1 if $attributes & 0x0200;
 	$self->{version} = $version;
 	$self->{ctime} = $ctime - $EPOCH_1904;
 	$self->{mtime} = $mtime - $EPOCH_1904;
