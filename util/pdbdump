@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 3.4 2002-01-26 22:25:22 arensb Exp $
+# $Id: pdbdump,v 3.5 2002-04-10 00:58:28 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -18,7 +18,7 @@ use Palm::ToDo;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 3.4 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 3.5 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
@@ -719,7 +719,7 @@ sub dumphash
 			&dumphash($value, $indent . "\t");
 		} elsif (ref($value) eq "ARRAY")
 		{
-			my $i;
+			my($i,$j);
 
 			print $indent, $key, ":\n";
 			for ($i = 0; $i <= $#{$value}; $i++)
@@ -729,7 +729,15 @@ sub dumphash
 					print $indent, "    $i:\n";
 					&dumphash($value->[$i],
 						$indent . "\t");
-				} else {
+				} elsif (ref($value->[$i]) eq "ARRAY")
+				{
+					my @v2 = @{$value->[$i]};
+					for ($j = 0; $j <= $#v2; $j++)
+					{
+						print $indent,
+							"\t$i-$j: [$v2[$j]]\n";
+					}
+				}else {
 					print $indent,
 						"\t$i: [$value->[$i]]\n";
 				}
