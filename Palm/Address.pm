@@ -6,17 +6,17 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.9 2000-05-06 21:48:50 arensb Exp $
+# $Id: Address.pm,v 1.10 2000-05-23 06:55:44 arensb Exp $
 
 use strict;
 package Palm::Address;
 use Palm::Raw();
-use Palm::StdAppInfo;
+use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA
 	$numFieldLabels $addrLabelLength @phoneLabels @countries );
 
-$VERSION = (qw( $Revision: 1.9 $ ))[1];
+$VERSION = (qw( $Revision: 1.10 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
