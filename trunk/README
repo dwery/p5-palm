@@ -43,3 +43,4 @@ etc., please send mail to the maintainer, Andrew Arensburger, at
 	Robert Norris <rob@nauseum.org>: patch for empty PDBs
 	Sumant S.R. Oemrawsingh <sikander@stad.dsl.nl>: patch for
 		inconsistent record fields in Mail.pm
+	John Jannotti <jj@lcs.mit.edu>: patches to make Perl 5.6 shut up.
