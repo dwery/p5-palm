@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.10 2000-05-07 06:31:50 arensb Exp $
+# $Id: PDB.pm,v 1.11 2000-07-09 00:25:46 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = (qw( $Revision: 1.10 $ ))[1];
+$VERSION = (qw( $Revision: 1.11 $ ))[1];
 
 =head1 NAME
 
@@ -106,6 +106,12 @@ sub new
 	$self->{ctime} = $now;
 	$self->{mtime} = $now;
 	$self->{baktime} = 0;
+
+	$self->{modnum} = 0;
+	$self->{type} = "\0\0\0\0";
+	$self->{creator} = "\0\0\0\0";
+	$self->{uniqueIDseed} = 0;
+	$self->{"2NULs"} = "\0\0";
 
 	bless $self, $class;
 	return $self;
@@ -926,6 +932,9 @@ sub Write
 			my $id;
 			my $data;
 
+			# XXX - Should probably check the length of this
+			# record and not add it to the record if it's 0.
+
 			# Get all the stuff that goes in the index, as
 			# well as the record data.
 			$attributes = 0;
@@ -1066,7 +1075,15 @@ sub Write
 			my $id;
 			my $index_data;
 
+			# XXX - Probably shouldn't write this record if
+			# length($data) == 0
 			($attributes, $id, $data) = @{$rec_data};
+
+			if (length($data) == 0)
+			{
+				warn printf("Write: Warning: record 0x%08x has length 0\n", $id)
+			}
+
 			$index_data = pack "N C C3",
 				$rec_offset,
 				$attributes,
@@ -1228,7 +1245,7 @@ sub new_Resource
 	my $retval = {};
 
 	# Initialize the resource
-	$retval->{type} = "    ";	# XXX - Is this sane?
+	$retval->{type} = "\0\0\0\0";
 	$retval->{id} = 0;
 
 	return $retval;
