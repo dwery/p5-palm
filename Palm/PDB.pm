@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.14 2000-08-04 04:12:35 arensb Exp $
+# $Id: PDB.pm,v 1.15 2000-08-24 04:57:42 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = (qw( $Revision: 1.14 $ ))[1];
+$VERSION = (qw( $Revision: 1.15 $ ))[1];
 
 =head1 NAME
 
@@ -40,6 +40,10 @@ Palm::PDB - Parse Palm database files.
     # Manipulate records in $pdb
 
     $pdb->Write("myotherfile.pdb");
+
+(Note: yes, you do want to use C<Palm::PDB>, even if you're dealing
+with some other type of database. $pdb will be reblessed to the
+appropriate type by C<$pdb-E<gt>Load>.)
 
 =head1 DESCRIPTION
 
