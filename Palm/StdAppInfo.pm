@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.13 2001-04-05 03:54:01 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.14 2001-06-02 19:17:15 arensb Exp $
 
 use strict;
 package Palm::StdAppInfo;
@@ -16,7 +16,7 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA $error );
 	# $error acts like $! in that it reports the error that occurred
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.13 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d", '$Revision: 1.14 $ ' =~ m{(\d+)\.(\d+)};
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -60,7 +60,7 @@ Or as a standalone C<PDB> helper class:
 Many Palm applications use a common format for keeping track of categories.
 The C<Palm::StdAppInfo> class deals with this common format:
 
-	$pdb = new PDB;
+	$pdb = new Palm::PDB;
 	$pdb->Load("myfile.pdb");
 
 	@categories   = @{$pdb->{appinfo}{categories}};
