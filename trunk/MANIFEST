@@ -13,6 +13,7 @@ Palm/PDB.pm
 Palm/Raw.pm
 Palm/StdAppInfo.pm
 Palm/ToDo.pm
+Palm/DateTime.pm
 util/add-memo
 util/copydb
 util/pdbdump
