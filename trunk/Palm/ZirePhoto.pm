@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ZirePhoto.pm,v 1.3 2004-04-21 02:14:53 christophe Exp $
+# $Id: ZirePhoto.pm,v 1.4 2004-06-22 03:45:02 christophe Exp $
 
 
 use strict;
@@ -16,7 +16,7 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.4 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @ISA = qw( Palm::Raw );
 
@@ -141,8 +141,8 @@ sub ParseRecord
 
 	$record{'thumbSize'} = length($record{'thumb'});
 
-	$record{'time1'} -= 2082844800;
-	$record{'time2'} -= 2082844800;
+	$record{'time1'} = $record{'time1_secs'} - 2082844800;
+	$record{'time2'} = $record{'time2_secs'} - 2082844800;
 
 	$record{'name'} = substr($record{'name'}, 0, $record{'nameSize'});
 
