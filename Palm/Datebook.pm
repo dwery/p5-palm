@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.13 2000-09-24 16:25:43 arensb Exp $
+# $Id: Datebook.pm,v 1.14 2001-02-24 16:49:40 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.13 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d", '$Revision: 1.14 $ ' =~ m{(\d+)\.(\d+)};
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -108,9 +108,8 @@ For weekly events, the following fields are defined:
     @{$record->{repeat}{repeat_days}}
 
 This is an array of 7 elements; each element is true iff the event
-occurs on the corresponding day. I don't know whether the array begins
-with Sunday, or with the start-of-week day as defined in the
-preferences.
+occurs on the corresponding day. Element 0 is Sunday, element 1 is
+Monday, and so forth.
 
     $record->{repeat}{start_of_week}
 
@@ -126,14 +125,15 @@ For "monthly by day" events, the following fields are defined:
 
     $record->{repeat}{weeknum}
 
-The number of the week on which the event occurs. A value of 5 means
-that the event occurs on the last week of the month.
+The number of the week on which the event occurs. 0 means the first
+week of the month, 1 means the second week of the month, and so forth.
+A value of 5 means that the event occurs on the last week of the
+month.
 
     $record->{repeat}{daynum}
 
-An integer, the day of the week on which the event occurs. Again, I
-don't know whether 0 means Sunday, or the start-of-week day as defined
-in the preferences.
+An integer, the day of the week on which the event occurs. 0 means
+Sunday, 1 means Monday, and so forth.
 
 =item 4
 
