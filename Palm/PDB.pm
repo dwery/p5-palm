@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.15 2000-08-24 04:57:42 arensb Exp $
+# $Id: PDB.pm,v 1.16 2000-09-16 23:58:12 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = (qw( $Revision: 1.15 $ ))[1];
+$VERSION = (qw( $Revision: 1.16 $ ))[1];
 
 =head1 NAME
 
@@ -519,8 +519,12 @@ sub Load
 	}
 
 	# Read the two NUL bytes
-	read PDB, $buf, 2;
-	$self->{"2NULs"} = $buf;
+	# XXX - Actually, these are bogus. They don't appear in the
+	# spec. The Right Thing to do is to ignore them, and use the
+	# specified or calculated offsets, if they're sane. Sane ==
+	# appears later than the current position.
+#	read PDB, $buf, 2;
+#	$self->{"2NULs"} = $buf;
 
 	# Read AppInfo block, if it exists
 	if ($self->{_appinfo_offset} != 0)
@@ -656,12 +660,18 @@ sub _load_appinfo_block
 
 	# Sanity check: make sure we're positioned at the beginning of
 	# the AppInfo block
-	if (tell($fh) != $pdb->{_appinfo_offset})
+	if (tell($fh) > $pdb->{_appinfo_offset})
 	{
 		die "Bad AppInfo offset: expected ",
 			sprintf("0x%08x", $pdb->{_appinfo_offset}),
 			", but I'm at ",
 			tell($fh), "\n";
+	}
+
+	# Seek to the right place, if necessary
+	if (tell($fh) != $pdb->{_appinfo_offset})
+	{
+		seek PDB, $pdb->{_appinfo_offset}, 0;
 	}
 
 	# There's nothing that explicitly gives the size of the
@@ -705,12 +715,18 @@ sub _load_sort_block
 
 	# Sanity check: make sure we're positioned at the beginning of
 	# the sort block
-	if (tell($fh) != $pdb->{_sort_offset})
+	if (tell($fh) > $pdb->{_sort_offset})
 	{
 		die "Bad sort block offset: expected ",
 			sprintf("0x%08x", $pdb->{_sort_offset}),
 			", but I'm at ",
 			tell($fh), "\n";
+	}
+
+	# Seek to the right place, if necessary
+	if (tell($fh) != $pdb->{_sort_offset})
+	{
+		seek PDB, $pdb->{_sort_offset}, 0;
 	}
 
 	# There's nothing that explicitly gives the size of the sort
@@ -758,13 +774,19 @@ sub _load_records
 
 		# Sanity check: make sure we're where we think we
 		# should be.
-		if (tell($fh) != $pdb->{_index}[$i]{offset})
+		if (tell($fh) > $pdb->{_index}[$i]{offset})
 		{
 			die "Bad offset for record $i: expected ",
 				sprintf("0x%08x",
 					$pdb->{_index}[$i]{offset}),
 				" but it's at ",
-				sprintf("0x%08x", tell($fh)), "\n";
+				sprintf("[0x%08x]", tell($fh)), "\n";
+		}
+
+		# Seek to the right place, if necessary
+		if (tell($fh) != $pdb->{_index}[$i]{offset})
+		{
+			seek PDB, $pdb->{_index}[$i]{offset}, 0;
 		}
 
 		# Compute the length of the record: the last record
@@ -814,13 +836,19 @@ sub _load_resources
 
 		# Sanity check: make sure we're where we think we
 		# should be.
-		if (tell($fh) != $pdb->{_index}[$i]{offset})
+		if (tell($fh) > $pdb->{_index}[$i]{offset})
 		{
 			die "Bad offset for resource $i: expected ",
 				sprintf("0x%08x",
 					$pdb->{_index}[$i]{offset}),
 				" but it's at ",
 				sprintf("0x%08x", tell($fh)), "\n";
+		}
+
+		# Seek to the right place, if necessary
+		if (tell($fh) != $pdb->{_index}[$i]{offset})
+		{
+			seek PDB, $pdb->{_index}[$i]{offset}, 0;
 		}
 
 		# Compute the length of the resource: the last
