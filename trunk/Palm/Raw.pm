@@ -12,7 +12,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Raw.pm,v 1.10 2002-11-03 16:43:16 azummo Exp $
+# $Id: Raw.pm,v 1.11 2005-03-29 02:46:03 arensb Exp $
 
 use strict;
 package Palm::Raw;
@@ -20,7 +20,7 @@ use Palm::PDB;
 use vars qw( $VERSION @ISA );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.10 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.11 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @ISA = qw( Palm::PDB );
 
@@ -87,15 +87,18 @@ This is a scalar, the raw data of the sort block.
 
     @{$pdb->{records}};
 
-Each element in the "records" array is a scalar, the raw data of that
-record.
+Each element in the "records" array is a reference-to-hash. In
+addition to the standard keys ("attributes", "category", and "id"),
+this hash contains the key "data"; its value is a string with the raw
+record data.
 
 =head2 Resources
 
     @{$pdb->{resources}};
 
-Each element in the "resources" array is a scalar, the raw data of
-that resource.
+Each element in the "resources" array is a reference-to-hash. In
+addition to the standard keys ("type" and "id"), it contains the key
+"data"; its value is a string with the raw resource data.
 
 =cut
 #'
