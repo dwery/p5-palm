@@ -2,3 +2,5 @@
   registered handlers for various resource types.
 - Add methods for adding, removing categories, when the AppInfo block
   uses the standard layout.
+- When creating a new PDB with 'sub new' in a helper, lots of fields
+  are left undefined. This makes 'perl -w' unhappy.
