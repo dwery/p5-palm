@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.8 2000-04-24 09:56:58 arensb Exp $
+# $Id: Address.pm,v 1.9 2000-05-06 21:48:50 arensb Exp $
 
 use strict;
 package Palm::Address;
@@ -16,7 +16,7 @@ use Palm::StdAppInfo;
 use vars qw( $VERSION @ISA
 	$numFieldLabels $addrLabelLength @phoneLabels @countries );
 
-$VERSION = (qw( $Revision: 1.8 $ ))[1];
+$VERSION = (qw( $Revision: 1.9 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 # AddressDB records are quite flexible and customizable, and therefore
@@ -42,85 +42,85 @@ L<Palm::StdAppInfo> for details.
 
 Other fields include:
 
-    $pdb->{"appinfo"}{"lastUniqueID"}
-    $pdb->{"appinfo"}{"dirtyFields"}
+    $pdb->{appinfo}{lastUniqueID}
+    $pdb->{appinfo}{dirtyFields}
 
 I don't know what these are.
 
-    $pdb->{"appinfo"}{"fieldLabels"}{"name"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"firstName"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"company"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone1"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone2"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone3"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone4"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone5"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone6"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone7"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"phone8"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"address"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"city"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"state"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"zipCode"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"country"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"title"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"custom1"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"custom2"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"custom3"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"custom4"}
-    $pdb->{"appinfo"}{"fieldLabels"}{"note"}
+    $pdb->{appinfo}{fieldLabels}{name}
+    $pdb->{appinfo}{fieldLabels}{firstName}
+    $pdb->{appinfo}{fieldLabels}{company}
+    $pdb->{appinfo}{fieldLabels}{phone1}
+    $pdb->{appinfo}{fieldLabels}{phone2}
+    $pdb->{appinfo}{fieldLabels}{phone3}
+    $pdb->{appinfo}{fieldLabels}{phone4}
+    $pdb->{appinfo}{fieldLabels}{phone5}
+    $pdb->{appinfo}{fieldLabels}{phone6}
+    $pdb->{appinfo}{fieldLabels}{phone7}
+    $pdb->{appinfo}{fieldLabels}{phone8}
+    $pdb->{appinfo}{fieldLabels}{address}
+    $pdb->{appinfo}{fieldLabels}{city}
+    $pdb->{appinfo}{fieldLabels}{state}
+    $pdb->{appinfo}{fieldLabels}{zipCode}
+    $pdb->{appinfo}{fieldLabels}{country}
+    $pdb->{appinfo}{fieldLabels}{title}
+    $pdb->{appinfo}{fieldLabels}{custom1}
+    $pdb->{appinfo}{fieldLabels}{custom2}
+    $pdb->{appinfo}{fieldLabels}{custom3}
+    $pdb->{appinfo}{fieldLabels}{custom4}
+    $pdb->{appinfo}{fieldLabels}{note}
 
 These are the names of the various fields in the address record.
 
-    $pdb->{"appinfo"}{"country"}
+    $pdb->{appinfo}{country}
 
 An integer: the code for the country for which these labels were
 designed. The country name is available as
 
-        $Palm::Address::countries[$pdb->{"appinfo"}{"country"}];
+        $Palm::Address::countries[$pdb->{appinfo}{country}];
 
-    $pdb->{"appinfo"}{"misc"}
+    $pdb->{appinfo}{misc}
 
 An integer. The least-significant bit is a flag that indicates whether
 the database should be sorted by company. The other bits are reserved.
 
 =head2 Sort block
 
-    $pdb->{"sort"}
+    $pdb->{sort}
 
 This is a scalar, the raw data of the sort block.
 
 =head2 Records
 
-    $record = $pdb->{"records"}[N];
+    $record = $pdb->{records}[N];
 
-    $record->{"fields"}{"name"}
-    $record->{"fields"}{"firstName"}
-    $record->{"fields"}{"company"}
-    $record->{"fields"}{"phone1"}
-    $record->{"fields"}{"phone2"}
-    $record->{"fields"}{"phone3"}
-    $record->{"fields"}{"phone4"}
-    $record->{"fields"}{"phone5"}
-    $record->{"fields"}{"address"}
-    $record->{"fields"}{"city"}
-    $record->{"fields"}{"state"}
-    $record->{"fields"}{"zipCode"}
-    $record->{"fields"}{"country"}
-    $record->{"fields"}{"title"}
-    $record->{"fields"}{"custom1"}
-    $record->{"fields"}{"custom2"}
-    $record->{"fields"}{"custom3"}
-    $record->{"fields"}{"custom4"}
-    $record->{"fields"}{"note"}
+    $record->{fields}{name}
+    $record->{fields}{firstName}
+    $record->{fields}{company}
+    $record->{fields}{phone1}
+    $record->{fields}{phone2}
+    $record->{fields}{phone3}
+    $record->{fields}{phone4}
+    $record->{fields}{phone5}
+    $record->{fields}{address}
+    $record->{fields}{city}
+    $record->{fields}{state}
+    $record->{fields}{zipCode}
+    $record->{fields}{country}
+    $record->{fields}{title}
+    $record->{fields}{custom1}
+    $record->{fields}{custom2}
+    $record->{fields}{custom3}
+    $record->{fields}{custom4}
+    $record->{fields}{note}
 
 These are scalars, the values of the various address book fields.
 
-    $record->{"phoneLabel"}{"phone1"}
-    $record->{"phoneLabel"}{"phone2"}
-    $record->{"phoneLabel"}{"phone3"}
-    $record->{"phoneLabel"}{"phone4"}
-    $record->{"phoneLabel"}{"phone5"}
+    $record->{phoneLabel}{phone1}
+    $record->{phoneLabel}{phone2}
+    $record->{phoneLabel}{phone3}
+    $record->{phoneLabel}{phone4}
+    $record->{phoneLabel}{phone5}
 
 Most fields in an AddressBook record are straightforward: the "name"
 field always gives the person's last name.
@@ -130,18 +130,18 @@ in different records. There are five such fields in each record, each
 of which can take on one of eight different values: "Work", "Home",
 "Fax", "Other", "E-mail", "Main", "Pager" and "Mobile".
 
-The $record->{"phoneLabel"}{"phone*"} fields are integers. Each one is
+The $record->{phoneLabel}{phone*} fields are integers. Each one is
 an index into @Palm::Address::phoneLabels, and indicates which
-particular type of phone number each of the $record->{"phone*"} fields
+particular type of phone number each of the $record->{phone*} fields
 represents.
 
-    $record->{"phoneLabel"}{"display"}
+    $record->{phoneLabel}{display}
 
 Like the phone* fields above, this is an index into
 @Palm::Address::phoneLabels. It indicates which of the phone*
 fields to display in the list view.
 
-    $record->{"phoneLabel"}{"reserved"}
+    $record->{phoneLabel}{reserved}
 
 I don't know what this is.
 
@@ -219,16 +219,16 @@ sub new
 			# Create a generic PDB. No need to rebless it,
 			# though.
 
-	$self->{"name"} = "AddressDB";	# Default
-	$self->{"creator"} = "addr";
-	$self->{"type"} = "DATA";
-	$self->{"attributes"}{"resource"} = 0;
+	$self->{name} = "AddressDB";	# Default
+	$self->{creator} = "addr";
+	$self->{type} = "DATA";
+	$self->{attributes}{resource} = 0;
 				# The PDB is not a resource database by
 				# default, but it's worth emphasizing,
 				# since AddressDB is explicitly not a PRC.
 
 	# Initialize the AppInfo block
-	$self->{"appinfo"} = {
+	$self->{appinfo} = {
 		fieldLabels	=> {
 			# Displayed labels for the various fields in
 			# each address record.
@@ -267,13 +267,13 @@ sub new
 	};
 
 	# Add the standard AppInfo block stuff
-	&Palm::StdAppInfo::seed_StdAppInfo($self->{"appinfo"});
+	&Palm::StdAppInfo::seed_StdAppInfo($self->{appinfo});
 
 	# Give the PDB a blank sort block
-	$self->{"sort"} = undef;
+	$self->{sort} = undef;
 
 	# Give the PDB an empty list of records
-	$self->{"records"} = [];
+	$self->{records} = [];
 
 	return $self;
 }
@@ -296,7 +296,7 @@ sub new_Record
 
 	# Initialize the fields. This isn't particularly enlightening,
 	# but every AddressDB record has these.
-	$retval->{"fields"} = {
+	$retval->{fields} = {
 		name		=> undef,
 		firstName	=> undef, 
 		company		=> undef,
@@ -319,7 +319,7 @@ sub new_Record
 	};
 
 	# Initialize the phone labels
-	$retval->{"phoneLabel"} = {
+	$retval->{phoneLabel} = {
 		phone1	=> 0,		# Work
 		phone2	=> 1,		# Home
 		phone3	=> 2,		# Fax
@@ -388,8 +388,8 @@ sub ParseAppInfoBlock
 				# have something like "Foo\0om 1"
 	}
 
-	$appinfo->{"dirtyFields"} = $dirtyFields;
-	$appinfo->{"fieldLabels"} = {
+	$appinfo->{dirtyFields} = $dirtyFields;
+	$appinfo->{fieldLabels} = {
 		name		=> $fieldLabels[0],
 		firstName	=> $fieldLabels[1],
 		company		=> $fieldLabels[2],
@@ -413,8 +413,8 @@ sub ParseAppInfoBlock
 		phone7		=> $fieldLabels[20],
 		phone8		=> $fieldLabels[21],
 		};
-	$appinfo->{"country"} = $country;
-	$appinfo->{"misc"} = $misc;	# XXX - Parse the "misc" field further
+	$appinfo->{country} = $country;
+	$appinfo->{misc} = $misc;	# XXX - Parse the "misc" field further
 
 	return $appinfo;
 }
@@ -426,36 +426,36 @@ sub PackAppInfoBlock
 	my $i;
 
 	# Pack the standard part of the AppInfo block
-	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{"appinfo"});
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
 
 	# And the application-specific stuff
-	$retval .= pack("x2 N", $self->{"appinfo"}{"dirtyFields"});
+	$retval .= pack("x2 N", $self->{appinfo}{dirtyFields});
 	$retval .= pack("a$addrLabelLength" x $numFieldLabels,
-		$self->{"appinfo"}{"fieldLabels"}{"name"},
-		$self->{"appinfo"}{"fieldLabels"}{"firstName"},
-		$self->{"appinfo"}{"fieldLabels"}{"company"},
-		$self->{"appinfo"}{"fieldLabels"}{"phone1"},
-		$self->{"appinfo"}{"fieldLabels"}{"phone2"},
-		$self->{"appinfo"}{"fieldLabels"}{"phone3"},
-		$self->{"appinfo"}{"fieldLabels"}{"phone4"},
-		$self->{"appinfo"}{"fieldLabels"}{"phone5"},
-		$self->{"appinfo"}{"fieldLabels"}{"address"},
-		$self->{"appinfo"}{"fieldLabels"}{"city"},
-		$self->{"appinfo"}{"fieldLabels"}{"state"},
-		$self->{"appinfo"}{"fieldLabels"}{"zipCode"},
-		$self->{"appinfo"}{"fieldLabels"}{"country"},
-		$self->{"appinfo"}{"fieldLabels"}{"title"},
-		$self->{"appinfo"}{"fieldLabels"}{"custom1"},
-		$self->{"appinfo"}{"fieldLabels"}{"custom2"},
-		$self->{"appinfo"}{"fieldLabels"}{"custom3"},
-		$self->{"appinfo"}{"fieldLabels"}{"custom4"},
-		$self->{"appinfo"}{"fieldLabels"}{"note"},
-		$self->{"appinfo"}{"fieldLabels"}{"phone6"},
-		$self->{"appinfo"}{"fieldLabels"}{"phone7"},
-		$self->{"appinfo"}{"fieldLabels"}{"phone8"});
+		$self->{appinfo}{fieldLabels}{name},
+		$self->{appinfo}{fieldLabels}{firstName},
+		$self->{appinfo}{fieldLabels}{company},
+		$self->{appinfo}{fieldLabels}{phone1},
+		$self->{appinfo}{fieldLabels}{phone2},
+		$self->{appinfo}{fieldLabels}{phone3},
+		$self->{appinfo}{fieldLabels}{phone4},
+		$self->{appinfo}{fieldLabels}{phone5},
+		$self->{appinfo}{fieldLabels}{address},
+		$self->{appinfo}{fieldLabels}{city},
+		$self->{appinfo}{fieldLabels}{state},
+		$self->{appinfo}{fieldLabels}{zipCode},
+		$self->{appinfo}{fieldLabels}{country},
+		$self->{appinfo}{fieldLabels}{title},
+		$self->{appinfo}{fieldLabels}{custom1},
+		$self->{appinfo}{fieldLabels}{custom2},
+		$self->{appinfo}{fieldLabels}{custom3},
+		$self->{appinfo}{fieldLabels}{custom4},
+		$self->{appinfo}{fieldLabels}{note},
+		$self->{appinfo}{fieldLabels}{phone6},
+		$self->{appinfo}{fieldLabels}{phone7},
+		$self->{appinfo}{fieldLabels}{phone8});
 	$retval .= pack("C C x2",
-		$self->{"appinfo"}{"country"},
-		$self->{"appinfo"}{"misc"});
+		$self->{appinfo}{country},
+		$self->{appinfo}{misc});
 	return $retval;
 }
 
@@ -502,7 +502,7 @@ sub ParseRecord
 	my $self = shift;
 	my %record = @_;
 
-	delete $record{"offset"};	# This is useless
+	delete $record{offset};	# This is useless
 
 	my $phoneFlags;
 	my @phoneTypes;
@@ -522,7 +522,7 @@ sub ParseRecord
 	my @fields;
 
 	($phoneFlags, $fieldMap, $companyFieldOff, $fields) =
-		unpack("N N C a*", $record{"data"});
+		unpack("N N C a*", $record{data});
 	@fields = split /\0/, $fields;
 
 	# Parse the phone flags
@@ -534,37 +534,37 @@ sub ParseRecord
 	$dispPhone     = ($phoneFlags >> 20) & 0x0f;
 	$reserved      = ($phoneFlags >> 24) & 0xff;
 
-	$record{"phoneLabel"}{"phone1"} = $phoneTypes[0];
-	$record{"phoneLabel"}{"phone2"} = $phoneTypes[1];
-	$record{"phoneLabel"}{"phone3"} = $phoneTypes[2];
-	$record{"phoneLabel"}{"phone4"} = $phoneTypes[3];
-	$record{"phoneLabel"}{"phone5"} = $phoneTypes[4];
-	$record{"phoneLabel"}{"display"} = $dispPhone;
-	$record{"phoneLabel"}{"reserved"} = $reserved;
+	$record{phoneLabel}{phone1} = $phoneTypes[0];
+	$record{phoneLabel}{phone2} = $phoneTypes[1];
+	$record{phoneLabel}{phone3} = $phoneTypes[2];
+	$record{phoneLabel}{phone4} = $phoneTypes[3];
+	$record{phoneLabel}{phone5} = $phoneTypes[4];
+	$record{phoneLabel}{display} = $dispPhone;
+	$record{phoneLabel}{reserved} = $reserved;
 
 	# Get the relevant fields
-	$fieldMap & 0x0001 and $record{"fields"}{"name"} = shift @fields;
-	$fieldMap & 0x0002 and $record{"fields"}{"firstName"} =
+	$fieldMap & 0x0001 and $record{fields}{name} = shift @fields;
+	$fieldMap & 0x0002 and $record{fields}{firstName} =
 		shift @fields;
-	$fieldMap & 0x0004 and $record{"fields"}{"company"} = shift @fields;
-	$fieldMap & 0x0008 and $record{"fields"}{"phone1"} = shift @fields;
-	$fieldMap & 0x0010 and $record{"fields"}{"phone2"} = shift @fields;
-	$fieldMap & 0x0020 and $record{"fields"}{"phone3"} = shift @fields;
-	$fieldMap & 0x0040 and $record{"fields"}{"phone4"} = shift @fields;
-	$fieldMap & 0x0080 and $record{"fields"}{"phone5"} = shift @fields;
-	$fieldMap & 0x0100 and $record{"fields"}{"address"} = shift @fields;
-	$fieldMap & 0x0200 and $record{"fields"}{"city"} = shift @fields;
-	$fieldMap & 0x0400 and $record{"fields"}{"state"} = shift @fields;
-	$fieldMap & 0x0800 and $record{"fields"}{"zipCode"} = shift @fields;
-	$fieldMap & 0x1000 and $record{"fields"}{"country"} = shift @fields;
-	$fieldMap & 0x2000 and $record{"fields"}{"title"} = shift @fields;
-	$fieldMap & 0x4000 and $record{"fields"}{"custom1"} = shift @fields;
-	$fieldMap & 0x8000 and $record{"fields"}{"custom2"} = shift @fields;
-	$fieldMap & 0x10000 and $record{"fields"}{"custom3"} = shift @fields;
-	$fieldMap & 0x20000 and $record{"fields"}{"custom4"} = shift @fields;
-	$fieldMap & 0x40000 and $record{"fields"}{"note"} = shift @fields;
+	$fieldMap & 0x0004 and $record{fields}{company} = shift @fields;
+	$fieldMap & 0x0008 and $record{fields}{phone1} = shift @fields;
+	$fieldMap & 0x0010 and $record{fields}{phone2} = shift @fields;
+	$fieldMap & 0x0020 and $record{fields}{phone3} = shift @fields;
+	$fieldMap & 0x0040 and $record{fields}{phone4} = shift @fields;
+	$fieldMap & 0x0080 and $record{fields}{phone5} = shift @fields;
+	$fieldMap & 0x0100 and $record{fields}{address} = shift @fields;
+	$fieldMap & 0x0200 and $record{fields}{city} = shift @fields;
+	$fieldMap & 0x0400 and $record{fields}{state} = shift @fields;
+	$fieldMap & 0x0800 and $record{fields}{zipCode} = shift @fields;
+	$fieldMap & 0x1000 and $record{fields}{country} = shift @fields;
+	$fieldMap & 0x2000 and $record{fields}{title} = shift @fields;
+	$fieldMap & 0x4000 and $record{fields}{custom1} = shift @fields;
+	$fieldMap & 0x8000 and $record{fields}{custom2} = shift @fields;
+	$fieldMap & 0x10000 and $record{fields}{custom3} = shift @fields;
+	$fieldMap & 0x20000 and $record{fields}{custom4} = shift @fields;
+	$fieldMap & 0x40000 and $record{fields}{note} = shift @fields;
 
-	delete $record{"data"};
+	delete $record{data};
 
 	return \%record;
 }
@@ -576,83 +576,83 @@ sub PackRecord
 	my $retval;
 
 	$retval = pack("N",
-		($record->{"phoneLabel"}{"phone1"}    & 0x0f) |
-		(($record->{"phoneLabel"}{"phone2"}   & 0x0f) <<  4) |
-		(($record->{"phoneLabel"}{"phone3"}   & 0x0f) <<  8) |
-		(($record->{"phoneLabel"}{"phone4"}   & 0x0f) << 12) |
-		(($record->{"phoneLabel"}{"phone5"}   & 0x0f) << 16) |
-		(($record->{"phoneLabel"}{"display"}  & 0x0f) << 20) |
-		(($record->{"phoneLabel"}{"reserved"} & 0xff) << 24));
+		($record->{phoneLabel}{phone1}    & 0x0f) |
+		(($record->{phoneLabel}{phone2}   & 0x0f) <<  4) |
+		(($record->{phoneLabel}{phone3}   & 0x0f) <<  8) |
+		(($record->{phoneLabel}{phone4}   & 0x0f) << 12) |
+		(($record->{phoneLabel}{phone5}   & 0x0f) << 16) |
+		(($record->{phoneLabel}{display}  & 0x0f) << 20) |
+		(($record->{phoneLabel}{reserved} & 0xff) << 24));
 
 	my $fieldMap;
 
 	$fieldMap = 0;
-	$fieldMap |= 0x0001 if $record->{"fields"}{"name"} ne "";
-	$fieldMap |= 0x0002 if $record->{"fields"}{"firstName"} ne "";
-	$fieldMap |= 0x0004 if $record->{"fields"}{"company"} ne "";
-	$fieldMap |= 0x0008 if $record->{"fields"}{"phone1"} ne "";
-	$fieldMap |= 0x0010 if $record->{"fields"}{"phone2"} ne "";
-	$fieldMap |= 0x0020 if $record->{"fields"}{"phone3"} ne "";
-	$fieldMap |= 0x0040 if $record->{"fields"}{"phone4"} ne "";
-	$fieldMap |= 0x0080 if $record->{"fields"}{"phone5"} ne "";
-	$fieldMap |= 0x0100 if $record->{"fields"}{"address"} ne "";
-	$fieldMap |= 0x0200 if $record->{"fields"}{"city"} ne "";
-	$fieldMap |= 0x0400 if $record->{"fields"}{"state"} ne "";
-	$fieldMap |= 0x0800 if $record->{"fields"}{"zipCode"} ne "";
-	$fieldMap |= 0x1000 if $record->{"fields"}{"country"} ne "";
-	$fieldMap |= 0x2000 if $record->{"fields"}{"title"} ne "";
-	$fieldMap |= 0x4000 if $record->{"fields"}{"custom1"} ne "";
-	$fieldMap |= 0x8000 if $record->{"fields"}{"custom2"} ne "";
-	$fieldMap |= 0x10000 if $record->{"fields"}{"custom3"} ne "";
-	$fieldMap |= 0x20000 if $record->{"fields"}{"custom4"} ne "";
-	$fieldMap |= 0x40000 if $record->{"fields"}{"note"} ne "";
+	$fieldMap |= 0x0001 if $record->{fields}{name} ne "";
+	$fieldMap |= 0x0002 if $record->{fields}{firstName} ne "";
+	$fieldMap |= 0x0004 if $record->{fields}{company} ne "";
+	$fieldMap |= 0x0008 if $record->{fields}{phone1} ne "";
+	$fieldMap |= 0x0010 if $record->{fields}{phone2} ne "";
+	$fieldMap |= 0x0020 if $record->{fields}{phone3} ne "";
+	$fieldMap |= 0x0040 if $record->{fields}{phone4} ne "";
+	$fieldMap |= 0x0080 if $record->{fields}{phone5} ne "";
+	$fieldMap |= 0x0100 if $record->{fields}{address} ne "";
+	$fieldMap |= 0x0200 if $record->{fields}{city} ne "";
+	$fieldMap |= 0x0400 if $record->{fields}{state} ne "";
+	$fieldMap |= 0x0800 if $record->{fields}{zipCode} ne "";
+	$fieldMap |= 0x1000 if $record->{fields}{country} ne "";
+	$fieldMap |= 0x2000 if $record->{fields}{title} ne "";
+	$fieldMap |= 0x4000 if $record->{fields}{custom1} ne "";
+	$fieldMap |= 0x8000 if $record->{fields}{custom2} ne "";
+	$fieldMap |= 0x10000 if $record->{fields}{custom3} ne "";
+	$fieldMap |= 0x20000 if $record->{fields}{custom4} ne "";
+	$fieldMap |= 0x40000 if $record->{fields}{note} ne "";
 
 	$retval .= pack("N", $fieldMap);
 
 	my $fields = '';
 	my $companyFieldOff = 0;
 
-	$fields .= $record->{"fields"}{"name"} . "\0"
-		unless $record->{"fields"}{"name"} eq "";
-	$fields .= $record->{"fields"}{"firstName"} . "\0"
-		unless $record->{"fields"}{"firstName"} eq "";
-	if ($record->{"fields"}{"company"} ne "")
+	$fields .= $record->{fields}{name} . "\0"
+		unless $record->{fields}{name} eq "";
+	$fields .= $record->{fields}{firstName} . "\0"
+		unless $record->{fields}{firstName} eq "";
+	if ($record->{fields}{company} ne "")
 	{
 		$companyFieldOff = length($fields) + 1;
-		$fields .= $record->{"fields"}{"company"} . "\0"
+		$fields .= $record->{fields}{company} . "\0"
 	}
-	$fields .= $record->{"fields"}{"phone1"} . "\0"
-		unless $record->{"fields"}{"phone1"} eq "";
-	$fields .= $record->{"fields"}{"phone2"} . "\0"
-		unless $record->{"fields"}{"phone2"} eq "";
-	$fields .= $record->{"fields"}{"phone3"} . "\0"
-		unless $record->{"fields"}{"phone3"} eq "";
-	$fields .= $record->{"fields"}{"phone4"} . "\0"
-		unless $record->{"fields"}{"phone4"} eq "";
-	$fields .= $record->{"fields"}{"phone5"} . "\0"
-		unless $record->{"fields"}{"phone5"} eq "";
-	$fields .= $record->{"fields"}{"address"} . "\0"
-		unless $record->{"fields"}{"address"} eq "";
-	$fields .= $record->{"fields"}{"city"} . "\0"
-		unless $record->{"fields"}{"city"} eq "";
-	$fields .= $record->{"fields"}{"state"} . "\0"
-		unless $record->{"fields"}{"state"} eq "";
-	$fields .= $record->{"fields"}{"zipCode"} . "\0"
-		unless $record->{"fields"}{"zipCode"} eq "";
-	$fields .= $record->{"fields"}{"country"} . "\0"
-		unless $record->{"fields"}{"country"} eq "";
-	$fields .= $record->{"fields"}{"title"} . "\0"
-		unless $record->{"fields"}{"title"} eq "";
-	$fields .= $record->{"fields"}{"custom1"} . "\0"
-		unless $record->{"fields"}{"custom1"} eq "";
-	$fields .= $record->{"fields"}{"custom2"} . "\0"
-		unless $record->{"fields"}{"custom2"} eq "";
-	$fields .= $record->{"fields"}{"custom3"} . "\0"
-		unless $record->{"fields"}{"custom3"} eq "";
-	$fields .= $record->{"fields"}{"custom4"} . "\0"
-		unless $record->{"fields"}{"custom4"} eq "";
-	$fields .= $record->{"fields"}{"note"} . "\0"
-		unless $record->{"fields"}{"note"} eq "";
+	$fields .= $record->{fields}{phone1} . "\0"
+		unless $record->{fields}{phone1} eq "";
+	$fields .= $record->{fields}{phone2} . "\0"
+		unless $record->{fields}{phone2} eq "";
+	$fields .= $record->{fields}{phone3} . "\0"
+		unless $record->{fields}{phone3} eq "";
+	$fields .= $record->{fields}{phone4} . "\0"
+		unless $record->{fields}{phone4} eq "";
+	$fields .= $record->{fields}{phone5} . "\0"
+		unless $record->{fields}{phone5} eq "";
+	$fields .= $record->{fields}{address} . "\0"
+		unless $record->{fields}{address} eq "";
+	$fields .= $record->{fields}{city} . "\0"
+		unless $record->{fields}{city} eq "";
+	$fields .= $record->{fields}{state} . "\0"
+		unless $record->{fields}{state} eq "";
+	$fields .= $record->{fields}{zipCode} . "\0"
+		unless $record->{fields}{zipCode} eq "";
+	$fields .= $record->{fields}{country} . "\0"
+		unless $record->{fields}{country} eq "";
+	$fields .= $record->{fields}{title} . "\0"
+		unless $record->{fields}{title} eq "";
+	$fields .= $record->{fields}{custom1} . "\0"
+		unless $record->{fields}{custom1} eq "";
+	$fields .= $record->{fields}{custom2} . "\0"
+		unless $record->{fields}{custom2} eq "";
+	$fields .= $record->{fields}{custom3} . "\0"
+		unless $record->{fields}{custom3} eq "";
+	$fields .= $record->{fields}{custom4} . "\0"
+		unless $record->{fields}{custom4} eq "";
+	$fields .= $record->{fields}{note} . "\0"
+		unless $record->{fields}{note} eq "";
 
 	$retval .= pack("C", $companyFieldOff);
 	$retval .= $fields;
