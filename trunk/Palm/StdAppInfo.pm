@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.8 2000-09-09 02:48:37 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.9 2000-09-09 04:50:39 arensb Exp $
 
 # XXX - Methods for adding, removing categories
 
@@ -15,9 +15,10 @@ package Palm::StdAppInfo;
 use Palm::Raw();
 
 # Don't harass me about these variables
-use vars qw( $VERSION @ISA );
+use vars qw( $VERSION @ISA $error );
+	# $error acts like $! in that it reports the error that occurred
 
-$VERSION = (qw( $Revision: 1.8 $ ))[1];
+$VERSION = (qw( $Revision: 1.9 $ ))[1];
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -367,9 +368,17 @@ sub pack_StdAppInfo
 	# by a naive (or clever) user or broken program.
 	for ($i = 0; $i < numCategories; $i++)
 	{
-		# Skip unnamed categories to stop Perl from complaining
-		next if !defined($appinfo->{categories}[$i]{name}) ||
-			    $appinfo->{categories}[$i]{name} eq "";
+		my $name;		# Category name
+
+		# This is mainly to stop Perl 5.6 from complaining if
+		# the category name is undefined.
+		if ((!defined($appinfo->{categories}[$i]{name})) ||
+		    $appinfo->{categories}[$i]{name} eq "")
+		{
+			$name = "";
+		} else {
+			$name = $appinfo->{categories}[$i]{name};
+		}
 
 		$retval .= pack("a" . categoryLength,
 			$appinfo->{categories}[$i]{name});
@@ -397,7 +406,7 @@ sub pack_StdAppInfo
 If your application's AppInfo block contains standard category support
 and nothing else, you may choose to just inherit this method instead
 of writing your own C<PackAppInfoBlock> method. Otherwise, see the
-example in the L<"SYNOPSIS">.
+example in L<"SYNOPSIS">.
 
 =cut
 #'
@@ -407,6 +416,144 @@ sub PackAppInfoBlock
 	my $self = shift;
 
 	return &pack_StdAppInfo($self->{appinfo});
+}
+
+=head2 addCategory
+
+    $pdb->addCategory($name [, $id [, $renamed]]);
+
+Adds a category to $pdb.
+
+The $name argument specifies the new category's name.
+
+The optional $id argument specifies the new category's numeric ID; if
+omitted or undefined, &addCategory will pick one.
+
+The optional $renamed argument is a boolean value indicating whether
+the new category should be marked as having been modified. This
+defaults to true since, conceptually, &addCategory doesn't really add
+a category: it finds one whose name happens to be empty, and renames
+it.
+
+Returns a true value if successful, false otherwise. In case of
+failure, &addCategory sets $Palm::StdAppInfo::error to an error
+message.
+
+=cut
+#'
+sub addCategory
+{
+	my $self = shift;	# PDB
+	my $name = shift;	# Category name
+	my $id = shift;		# Category ID (optional)
+	my $renamed = $#_ >= 0 ? $_[0] : 1;
+				# Flag: was the category renamed (optional)
+				# This initialization may look weird,
+				# but it's this way so that it'll
+				# default to true if omitted.
+	my $categories = $self->{appinfo}{categories};
+	my $i;
+	my %used;		# Category IDs in use
+
+	# Collect all the IDs in the current list
+	for (@{$categories})
+	{
+		next if !defined($_->{name}) || $_->{name} eq "";
+		$used{$_->{id}} = 1;
+	}
+
+	if (defined($id))
+	{
+		# Sanity check: make sure this ID isn't already in use
+		if (defined($used{$id}))
+		{
+			$error = "Category ID already in use";
+			return undef;
+		}
+	} else {
+		# Find an unused category number, if none was specified
+		for ($id = 128; $id < 256; $id++)
+		{
+			last if !defined($used{$id});
+		}
+	}
+
+	# Go through the list of categories, looking for an unused slot
+	for ($i = 0; $i < numCategories; $i++)
+	{
+		# Ignore named categories
+		next unless !defined($categories->[$i]{name}) or
+			$categories->[$i]{name} eq "";
+
+		# Found an empty slot
+		$categories->[$i]{name}    = $name;
+		$categories->[$i]{id}      = $id;
+		$categories->[$i]{renamed} = $renamed;
+		return 1;
+	}
+
+	# If we get this far, there are no empty category slots
+	$error = "No unused categories";
+	return undef;
+}
+
+=head2 deleteCategory
+
+    $pdb->deleteCategory($name);
+
+Deletes the category with name $name. Actually, though, it doesn't
+delete the category: it just changes its name to the empty string, and
+marks the category as renamed.
+
+=cut
+#'
+sub deleteCategory
+{
+	my $self = shift;
+	my $name = shift;		# Category name
+
+	for (@{$self->{appinfo}{categories}})
+	{
+		# Find the category named $name
+		next if $_->{name} ne $name;
+
+		# Erase this category
+		$_->{name} = "";
+		$_->{renamed} = 1;
+	}
+}
+
+=head2 renameCategory
+
+    $pdb->renameCategory($oldname, $newname);
+
+Renames the category named $oldname to $newname.
+
+If successful, returns a true value. If there is no category named
+$oldname, returns a false value and sets $Palm::StdAppInfo::error to
+an error message.
+
+=cut
+#'
+sub renameCategory
+{
+	my $self = shift;
+	my $oldname = shift;
+	my $newname = shift;
+
+	for (@{$self->{appinfo}{categories}})
+	{
+		# Look for a category named $oldname
+		next if !defined($_->{name}) || $_->{name} ne $oldname;
+
+		# Found it. Rename it and mark it as renamed.
+		$_->{name} = $newname;
+		$_->{renamed} = 1;
+		return 1;
+	}
+
+	$error = "No such category";
+	return undef;
 }
 
 1;
@@ -419,9 +566,5 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 =head1 SEE ALSO
 
 Palm::PDB(3)
-
-=head1 BUGS
-
-There are no methods for adding or deleting categories.
 
 =cut
