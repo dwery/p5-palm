@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.27 2002-06-16 13:37:25 azummo Exp $
+# $Id: PDB.pm,v 1.28 2002-06-22 13:16:52 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.27 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.28 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 =head1 NAME
 
@@ -92,25 +92,29 @@ its elements have special significance. See L<Load()|/Load>.
 
 sub new
 {
-	my $class = shift;
+	my $class	= shift;
+	my $params	= shift;
+
 	my $self = {};
 
+
 	# Initialize the PDB. These values are just defaults, of course.
-	$self->{name} = "";
-	$self->{attributes} = {};
-	$self->{version} = 0;
+	$self->{'name'} 	= $params->{'name'}		|| "";
+	$self->{'attributes'}	= $params->{'attributes'} 	|| {};
+	$self->{'version'}	= $params->{'version'} 		|| 0;
 
 	my $now = time;
 
-	$self->{ctime} = $now;
-	$self->{mtime} = $now;
-	$self->{baktime} = -$EPOCH_1904;
+	$self->{'ctime'} 	= $params->{'ctime'}		|| $now;
+	$self->{'mtime'} 	= $params->{'mtime'}		|| $now;
+	$self->{'baktime'} 	= $params->{'baktime'}		|| -$EPOCH_1904;
 
-	$self->{modnum} = 0;
-	$self->{type} = "\0\0\0\0";
-	$self->{creator} = "\0\0\0\0";
-	$self->{uniqueIDseed} = 0;
-	$self->{"2NULs"} = "\0\0";
+	$self->{'modnum'}	= $params->{'modnum'}		|| 0;
+	$self->{'type'}		= $params->{'type'}		|| "\0\0\0\0";
+	$self->{'creator'} 	= $params->{'creator'}		|| "\0\0\0\0";
+	$self->{'uniqueIDseed'} = $params->{'uniqueIDseed'}	|| 0;
+
+	$self->{"2NULs"}	= "\0\0";
 
 	bless $self, $class;
 	return $self;
