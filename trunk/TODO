@@ -3,3 +3,10 @@
 - Add methods for adding, removing categories, when the AppInfo block
   uses the standard layout.
 - Add PQA parser.
+- Redo StdAppInfo: the category stuff should logically be arranged as
+  a 16-element array:
+	@categories = $appinfo->{categories};
+	$category = $categories[0];
+	$category->{name}
+	$category->{id}
+	$category->{renamed}		# Boolean
