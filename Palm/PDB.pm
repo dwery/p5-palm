@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.30 2003-08-03 17:06:22 arensb Exp $
+# $Id: PDB.pm,v 1.31 2003-10-10 10:51:14 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.30 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.31 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 =head1 NAME
 
@@ -115,6 +115,9 @@ sub new
 	$self->{'uniqueIDseed'} = $params->{'uniqueIDseed'}	|| 0;
 
 	$self->{"2NULs"}	= "\0\0";
+
+	# This will be set when any elements of the object are changed
+	$self->{'dirty'} = 0;
 
 	bless $self, $class;
 	return $self;
@@ -585,6 +588,8 @@ sub Load
 	delete $self->{_appinfo_offset};
 	delete $self->{_sort_offset};
 	delete $self->{_size};
+
+	$self->{'dirty'} = 0;
 
 	close PDB;
 }
@@ -1280,6 +1285,44 @@ sub new_Record
 	return $retval;
 }
 
+=head2 is_Dirty
+
+  $pdb->Write( $fname ) if $pdb->is_Dirty();
+
+Returns non-zero if any of the in-memory elements of the database have
+been changed. This includes changes via function calls (any call that
+changes the C<$pdb>'s "last modification" time) as well as testing the
+"dirty" status of attributes where possible (i.e. AppInfo, records,
+but not resource entries).
+
+=cut
+#'
+
+sub is_Dirty
+{
+	my $self = shift;
+
+	# try the quick and easy tests first
+	return 1 if $self->{'dirty'};
+	return 1 if $self->{'attributes'}{'AppInfoDirty'};
+	return 1 if $self->{'attributes'}{'AppInfo dirty'};
+
+	# okay, check the records. Note that resource entries appear to
+	# have no dirty flags for us to use.
+	if (!$self->{attributes}{resource} and !$self->{'attributes'}{'ResDB'})
+	{
+		my $record;
+
+		foreach $record (@{$self->{records}})
+		{
+			return 1 if $record->{'attributes'}{'Dirty'};
+			return 1 if $record->{'attributes'}{'dirty'};
+		}
+	}
+
+	return 0;
+}
+
 =head2 append_Record
 
   $record  = $pdb->append_Record;
@@ -1325,6 +1368,7 @@ sub append_Record
 
 	# Update the "last modification time".
 	$self->{mtime} = time;
+	$self->{'dirty'} = 1;
 
 	return $_[0];
 }
@@ -1400,6 +1444,7 @@ sub append_Resource
 
 	# Update the "last modification time".
 	$self->{mtime} = time;
+	$self->{'dirty'} = 1;
 
 	return $_[0];
 }
@@ -1473,6 +1518,7 @@ sub delete_Record
 
 	# Update the "last modification time".
 	$self->{mtime} = time;
+	$self->{'dirty'} = 1;
 }
 
 1;
