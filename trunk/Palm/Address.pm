@@ -1,4 +1,4 @@
-# Palm::PDB::Address.pm
+# Palm::Address.pm
 # 
 # Perl class for dealing with Palm AddressBook databases. 
 #
@@ -6,16 +6,16 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Address.pm,v 1.1 1999-11-18 05:15:51 arensb Exp $
+# $Id: Address.pm,v 1.2 1999-11-18 06:20:03 arensb Exp $
 
-package Palm::PDB::Address;
+package Palm::Address;
 
 # AddressDB records are quite flexible and customizable, and therefore
 # a pain in the ass to deal with correctly.
 
-use Palm::PDB::Raw();
+use Palm::Raw();
 
-@ISA = qw( Palm::PDB::Raw );
+@ISA = qw( Palm::Raw );
 
 $numCategories = 16;		# Number of categories in AppInfo block
 $categoryLength = 16;		# Length of category names
@@ -431,11 +431,11 @@ __END__
 
 =head1 NAME
 
-Palm::PDB::Address - Handler for Palm AddressBook databases.
+Palm::Address - Handler for Palm AddressBook databases.
 
 =head1 SYNOPSIS
 
-    use Palm::PDB::Address;
+    use Palm::Address;
 
 =head1 DESCRIPTION
 
@@ -494,7 +494,7 @@ These are the names of the various fields in the address record.
 An integer: the code for the country for which these labels were
 designed. The country name is available as
 
-        $Palm::PDB::Address::countries[$pdb->{"appinfo"}{"country"}];
+        $Palm::Address::countries[$pdb->{"appinfo"}{"country"}];
 
     $pdb->{"appinfo"}{"misc"}
 
@@ -548,14 +548,14 @@ of which can take on one of eight different values: "Work", "Home",
 "Fax", "Other", "E-mail", "Main", "Pager" and "Mobile".
 
 The $record->{"phoneLabel"}{"phone*"} fields are integers. Each one is
-an index into @Palm::PDB::Address::phoneLabels, and indicates which
+an index into @Palm::Address::phoneLabels, and indicates which
 particular type of phone number each of the $record->{"phone*"} fields
 represents.
 
     $record->{"phoneLabel"}{"display"}
 
 Like the phone* fields above, this is an index into
-@Palm::PDB::Address::phoneLabels. It indicates which of the phone*
+@Palm::Address::phoneLabels. It indicates which of the phone*
 fields to display in the list view.
 
     $record->{"phoneLabel"}{"reserved"}

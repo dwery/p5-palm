@@ -1,4 +1,4 @@
-# Palm::PDB::Memo.pm
+# Palm::Memo.pm
 # 
 # Perl class for dealing with Palm Memo databases. 
 #
@@ -6,13 +6,13 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Memo.pm,v 1.1 1999-11-18 05:16:26 arensb Exp $
+# $Id: Memo.pm,v 1.2 1999-11-18 06:20:38 arensb Exp $
 
-package Palm::PDB::Memo;
+package Palm::Memo;
 
-use Palm::PDB::Raw();
+use Palm::Raw();
 
-@ISA = qw( Palm::PDB::Raw );
+@ISA = qw( Palm::Raw );
 
 $numCategories = 16;		# Number of categories in AppInfo block
 $categoryLength = 16;		# Length of category names
@@ -126,11 +126,11 @@ __END__
 
 =head1 NAME
 
-Palm::PDB::Memo - Handler for Palm Memo databases.
+Palm::Memo - Handler for Palm Memo databases.
 
 =head1 SYNOPSIS
 
-    use Palm::PDB::Memo;
+    use Palm::Memo;
 
 =head1 DESCRIPTION
 

@@ -1,4 +1,4 @@
-# Palm::PDB::Mail.pm
+# Palm::Mail.pm
 # 
 # Perl class for dealing with Palm Mail databases. 
 #
@@ -6,13 +6,13 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.1 1999-11-18 05:16:17 arensb Exp $
+# $Id: Mail.pm,v 1.2 1999-11-18 06:20:25 arensb Exp $
 
-package Palm::PDB::Mail;
+package Palm::Mail;
 
-use Palm::PDB::Raw();
+use Palm::Raw();
 
-@ISA = qw( Palm::PDB::Raw );
+@ISA = qw( Palm::Raw );
 
 $numCategories = 16;		# Number of categories in AppInfo block
 $categoryLength = 16;		# Length of category names
@@ -299,11 +299,11 @@ __END__
 
 =head1 NAME
 
-Palm::PDB::Mail - Handler for Palm Mail databases.
+Palm::Mail - Handler for Palm Mail databases.
 
 =head1 SYNOPSIS
 
-    use Palm::PDB::Mail;
+    use Palm::Mail;
 
 =head1 DESCRIPTION
 

@@ -1,4 +1,4 @@
-# Palm::PDB::Raw.pm
+# Palm::Raw.pm
 # 
 # Perl class for dealing with "raw" PDB databases. A "raw" database is
 # one where the AppInfo and sort blocks, and all of the
@@ -12,9 +12,9 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Raw.pm,v 1.1 1999-11-18 05:16:36 arensb Exp $
+# $Id: Raw.pm,v 1.2 1999-11-18 06:21:26 arensb Exp $
 
-package Palm::PDB::Raw;
+package Palm::Raw;
 
 use Palm::PDB;
 
@@ -95,11 +95,11 @@ __END__
 
 =head1 NAME
 
-Palm::PDB::Raw - Handler for "raw" Palm databases.
+Palm::Raw - Handler for "raw" Palm databases.
 
 =head1 SYNOPSIS
 
-    use Palm::PDB::Raw;
+    use Palm::Raw;
 
 =head1 DESCRIPTION
 
@@ -115,7 +115,7 @@ By default, the Raw handler only handles record databases (.pdb
 files). If you want it to handle resource databases (.prc files) as
 well, you need to call
 
-    &Palm::PDB::RegisterPRCHandlers("Palm::PDB::Raw", "");
+    &Palm::PDB::RegisterPRCHandlers("Palm::Raw", "");
 
 in your script.
 
