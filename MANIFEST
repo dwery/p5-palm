@@ -13,4 +13,4 @@ Palm/Raw.pm
 Palm/StdAppInfo.pm
 Palm/ToDo.pm
 util/copydb
-util/dumpdb
+util/pdbdump
