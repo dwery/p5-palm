@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.28 2002-06-22 13:16:52 azummo Exp $
+# $Id: PDB.pm,v 1.29 2002-11-03 16:43:16 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -24,8 +24,8 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.28 $ ' =~ m{(\d+)(?:\.(\d+))};
+# One liner, to allow MakeMaker to work.
+$VERSION = do { my @r = (q$Revision: 1.29 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 =head1 NAME
 

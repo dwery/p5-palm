@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ToDo.pm,v 1.10 2002-01-26 22:25:21 arensb Exp $
+# $Id: ToDo.pm,v 1.11 2002-11-03 16:43:16 azummo Exp $
 
 # XXX - Bug: apparently, the first ToDo item shows up with a category
 # of "unfiled"
@@ -18,8 +18,9 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.10 $ ' =~ m{(\d+)(?:\.(\d+))};
+# One liner, to allow MakeMaker to work.
+$VERSION = do { my @r = (q$Revision: 1.11 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME

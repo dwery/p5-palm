@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.17 2002-05-09 14:24:39 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.18 2002-11-03 16:43:16 azummo Exp $
 
 use strict;
 package Palm::StdAppInfo;
@@ -16,8 +16,9 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA $error );
 	# $error acts like $! in that it reports the error that occurred
 
-$VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.17 $ ' =~ m{(\d+)(?:\.(\d+))};
+# One liner, to allow MakeMaker to work.
+$VERSION = do { my @r = (q$Revision: 1.18 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+
 @ISA = qw( Palm::Raw );
 
 =head1 NAME

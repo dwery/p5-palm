@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PQA.pm,v 1.2 2002-01-26 22:25:17 arensb Exp $
+# $Id: PQA.pm,v 1.3 2002-11-03 16:43:16 azummo Exp $
 
 # XXX - Write POD
 
@@ -20,8 +20,9 @@ use vars qw( $VERSION @ISA
 	$_in_tag
 	);
 
-$VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.2 $ ' =~ m{(\d+)(?:\.(\d+))};
+# One liner, to allow MakeMaker to work.
+$VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+
 @ISA = qw( Palm::Raw );
 
 sub import
