@@ -6,10 +6,20 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ToDo.pm,v 1.4 2000-02-02 04:20:01 arensb Exp $
+# $Id: ToDo.pm,v 1.5 2000-05-06 21:20:08 arensb Exp $
 
+# XXX - Bug: apparently, the first ToDo item shows up with a category
+# of "unfiled"
+
+use strict;
 package Palm::ToDo;
-($VERSION) = '$Revision: 1.4 $ ' =~ /\$Revision:\s+([^\s]+)/;
+use Palm::Raw();
+use Palm::StdAppInfo();
+
+use vars qw( $VERSION @ISA );
+
+$VERSION = (qw( $Revision: 1.5 $ ))[1];
+@ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
 
@@ -26,22 +36,11 @@ parses ToDo databases.
 
 =head2 AppInfo block
 
-    $pdb->{"appinfo"}{"renamed"}
+The AppInfo block begins with standard category support. See
+L<Palm::StdAppInfo> for details.
 
-A scalar. I think this is a bitmap of category names that have changed
-since the last sync.
+Other fields include:
 
-    @{$pdb->{"appinfo"}{"categories"}}
-
-Array of category names.
-
-    @{$pdb->{"appinfo"}{"uniqueIDs"}}
-
-Array of category IDs. By convention, categories created on the Palm
-have IDs in the range 0-127, and categories created on the desktop
-have IDs in the range 128-255.
-
-    $pdb->{"appinfo"}{"lastUniqueID"}
     $pdb->{"appinfo"}{"dirty_appinfo"}
     $pdb->{"appinfo"}{"sortOrder"}
 
@@ -84,13 +83,6 @@ has no note.
 =cut
 #'
 
-use Palm::Raw();
-
-@ISA = qw( Palm::Raw );
-
-$numCategories = 16;		# Number of categories in AppInfo block
-$categoryLength = 16;		# Length of category names
-
 sub import
 {
 	&Palm::PDB::RegisterPDBHandlers(__PACKAGE__,
@@ -129,22 +121,12 @@ sub new
 
 	# Initialize the AppInfo block
 	$self->{"appinfo"} = {
-		renamed		=> 0,	# Dunno what this is
-		categories	=> [],	# List of category names
-		uniqueIDs	=> [],	# List of category IDs
-# XXX		lastUniqueID	=> ?
 		dirty_appinfo	=> undef,	# ?
 		sortOrder	=> undef,	# ?
 	};
 
-	# Make sure there are $numCategories categories
-	$#{$self->{"appinfo"}{"categories"}} = $numCategories-1;
-	$#{$self->{"appinfo"}{"uniqueIDs"}} = $numCategories-1;
-
-	# If nothing else, there should be an "Unfiled" category, with
-	# ID 0.
-	$self->{"appinfo"}{"categories"}[0] = "Unfiled";
-	$self->{"appinfo"}{"uniqueIDs"}[0] = 0;
+	# Add the standard AppInfo block stuff
+	&Palm::StdAppInfo::seed_StdAppInfo($self->{"appinfo"});
 
 	# Give the PDB a blank sort block
 	$self->{"sort"} = undef;
@@ -191,39 +173,24 @@ sub ParseAppInfoBlock
 {
 	my $self = shift;
 	my $data = shift;
-	my $renamed;		# Renamed categories;
-	my @labels;		# Category labels
-	my @uniqueIDs;
-	my $lastUniqueID;
 	my $dirtyAppInfo;
 	my $sortOrder;
+	my $appinfo = {};
+	my $std_len;
 
-	my $unpackstr =		# Argument to unpack(), since it's hairy
-		"n" .		# Renamed categories
-		"a$categoryLength" x $numCategories .
-				# Category labels
-		"C" x $numCategories .
-				# Category IDs
-		"C" .		# Last unique ID
-		"x3" .		# Padding
+	# Get the standard parts of the AppInfo block
+	$std_len = &Palm::StdAppInfo::parse_StdAppInfo($appinfo, $data);
+
+	$data = substr $data, $std_len;		# Remove the parsed part
+
+	# Get the rest of the AppInfo block
+	my $unpackstr =		# Argument to unpack()
+		"x2" .		# Reserved
 		"n" .		# XXX - Dirty AppInfo (what is this?)
 		"Cx";		# Sort order
-	my $appinfo = {};
 
-	($renamed, @labels[0..($numCategories-1)],
-	 @uniqueIDs[0..($numCategories-1)], $lastUniqueID, $dirtyAppInfo,
-	 $sortOrder, $extra) =
-		unpack $unpackstr, $data;
+	($dirtyAppInfo, $sortOrder) = unpack $unpackstr, $data;
 
-	for (@labels)
-	{
-		s/\0.*//;	# Trim at first NUL
-	}
-
-	$appinfo->{"renamed"} = $renamed;
-	$appinfo->{"categories"} = [ @labels ];
-	$appinfo->{"uniqueIDs"} = [ @uniqueIDs ];
-	$appinfo->{"lastUniqueID"} = $lastUniqueID;
 	$appinfo->{"dirty_appinfo"} = $dirtyAppInfo;
 	$appinfo->{"sort_order"} = $sortOrder;
 
@@ -235,17 +202,11 @@ sub PackAppInfoBlock
 	my $self = shift;
 	my $retval;
 
-	$retval = pack("n", $self->{"appinfo"}{"renamed"});
-	for (@{$self->{"appinfo"}{"categories"}})
-	{
-		$retval .= pack("a$categoryLength", $_);
-	}
-	for (@{$self->{"appinfo"}{"uniqueIDs"}})
-	{
-		$retval .= pack("C", $_);
-	}
-	$retval .= pack("C x3 n Cx",
-		$self->{"appinfo"}{"lastUniqueID"},
+	# Pack the standard part of the AppInfo block
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{"appinfo"});
+
+	# And the application-specific stuff
+	$retval .= pack("x2 n Cx",
 		$self->{"appinfo"}{"dirty_appinfo"},
 		$self->{"appinfo"}{"sort_order"});
 
@@ -258,6 +219,7 @@ sub ParseRecord
 	my %record = @_;
 	my $data = $record{"data"};
 
+print STDERR "Raw record contains keys {", join(", ", keys %record), "}\n";
 	delete $record{"offset"};	# This is useless
 	delete $record{"data"};		# No longer necessary
 
@@ -339,6 +301,8 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 
 =head1 SEE ALSO
 
-Palm::PDB(1)
+Palm::PDB(3)
+
+Palm::StdAppInfo(3)
 
 =cut
