@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     'NAME'		=> 'Palm',
-    'VERSION'		=> '1.1.11',
+    'VERSION'		=> '1.1.12',
     'DISTNAME'		=> 'p5-Palm',	# More descriptive than just "Palm"
     'INSTALLDIRS'	=> 'site',
     'EXE_FILES'		=> [ 'util/pdbdump' ],
