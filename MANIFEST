@@ -4,7 +4,6 @@ README
 FAQ
 TODO
 Makefile.PL
-test.pl
 Palm/Address.pm
 Palm/Datebook.pm
 Palm/Mail.pm
@@ -18,3 +17,16 @@ Palm/ZirePhoto.pm
 util/add-memo
 util/copydb
 util/pdbdump
+t/AddressDB.pdb
+t/address.t
+t/bogus1DB.pdb
+t/bogus2DB.pdb
+t/bogusdb.t
+t/DatebookDB.pdb
+t/datebook.t
+t/MailDB.pdb
+t/mail.t
+t/MemoDB.pdb
+t/memo.t
+t/ToDoDB.pdb
+t/todo.t

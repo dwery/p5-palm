@@ -6,11 +6,13 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..1\n"; }
+BEGIN { $| = 1; print "1..3\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Palm::PDB;
 $loaded = 1;
 print "ok 1\n";
+
+use Palm::ToDo;
 
 ######################### End of black magic.
 
@@ -18,3 +20,19 @@ print "ok 1\n";
 # (correspondingly "not ok 13") depending on the success of chunk 13
 # of the test code):
 
+my $pdb = new Palm::PDB;
+
+eval { $pdb->Load( 't/ToDoDB.pdb' ); };
+unless( $@ ) {
+	print "ok 2\n";
+} else {
+	print "not ok 2\n";
+}
+
+my $recs = 0;
+for( @{$pdb->{'records'}} ) {
+	$recs ++;
+}
+print (($recs == 1) ? "ok 3\n" : "not ok 3\n");
+
+1;
