@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.9 2000-05-06 21:18:41 arensb Exp $
+# $Id: PDB.pm,v 1.10 2000-05-07 06:31:50 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = (qw( $Revision: 1.9 $ ))[1];
+$VERSION = (qw( $Revision: 1.10 $ ))[1];
 
 =head1 NAME
 
@@ -90,8 +90,8 @@ sub new
 	my $self = {};
 
 	# Initialize the PDB. These values are just defaults, of course.
-	$self->{"name"} = "";
-	$self->{"attributes"} = {
+	$self->{name} = "";
+	$self->{attributes} = {
 		resource	=> 0,
 		"read-only"	=> 0,
 		"AppInfo dirty"	=> 0,
@@ -100,12 +100,12 @@ sub new
 		reset		=> 0,
 		open		=> 0,
 	};
-	$self->{"version"} = 0;
+	$self->{version} = 0;
 
 	my $now = time;
-	$self->{"ctime"} = $now;
-	$self->{"mtime"} = $now;
-	$self->{"baktime"} = 0;
+	$self->{ctime} = $now;
+	$self->{mtime} = $now;
+	$self->{baktime} = 0;
 
 	bless $self, $class;
 	return $self;
@@ -409,7 +409,7 @@ sub Load
 
 	# Get the size of the file. It'll be useful later
 	seek PDB, 0, 2;		# 2 == SEEK_END. Seek to the end.
-	$self->{"_size"} = tell PDB;
+	$self->{_size} = tell PDB;
 	seek PDB, 0, 0;		# 0 == SEEK_START. Rewind to the beginning.
 
 	# Read header
@@ -434,25 +434,25 @@ sub Load
 	$uniqueIDseed) =
 		unpack "a32 n n N N N N N N a4 a4 N", $buf;
 
-	($self->{"name"} = $name) =~ s/\0*$//;
-	$self->{"attributes"}{"resource"} = 1 if $attributes & 0x0001;
-	$self->{"attributes"}{"read-only"} = 1 if $attributes & 0x0002;
-	$self->{"attributes"}{"AppInfo dirty"} = 1 if $attributes & 0x0004;
-	$self->{"attributes"}{"backup"} = 1 if $attributes & 0x0008;
-	$self->{"attributes"}{"OK newer"} = 1 if $attributes & 0x0010;
-	$self->{"attributes"}{"reset"} = 1 if $attributes & 0x0020;
-	$self->{"attributes"}{"open"} = 1 if $attributes & 0x0040;
-	$self->{"version"} = $version;
-	$self->{"ctime"} = $ctime - $EPOCH_1904;
-	$self->{"mtime"} = $mtime - $EPOCH_1904;
-	$self->{"baktime"} = $baktime - $EPOCH_1904;
-	$self->{"modnum"} = $modnum;
+	($self->{name} = $name) =~ s/\0*$//;
+	$self->{attributes}{resource} = 1 if $attributes & 0x0001;
+	$self->{attributes}{"read-only"} = 1 if $attributes & 0x0002;
+	$self->{attributes}{"AppInfo dirty"} = 1 if $attributes & 0x0004;
+	$self->{attributes}{backup} = 1 if $attributes & 0x0008;
+	$self->{attributes}{"OK newer"} = 1 if $attributes & 0x0010;
+	$self->{attributes}{reset} = 1 if $attributes & 0x0020;
+	$self->{attributes}{open} = 1 if $attributes & 0x0040;
+	$self->{version} = $version;
+	$self->{ctime} = $ctime - $EPOCH_1904;
+	$self->{mtime} = $mtime - $EPOCH_1904;
+	$self->{baktime} = $baktime - $EPOCH_1904;
+	$self->{modnum} = $modnum;
 	# _appinfo_offset and _sort_offset are private fields
-	$self->{"_appinfo_offset"} = $appinfo_offset;
-	$self->{"_sort_offset"} = $sort_offset;
-	$self->{"type"} = $type;
-	$self->{"creator"} = $creator;
-	$self->{"uniqueIDseed"} = $uniqueIDseed;
+	$self->{_appinfo_offset} = $appinfo_offset;
+	$self->{_sort_offset} = $sort_offset;
+	$self->{type} = $type;
+	$self->{creator} = $creator;
+	$self->{uniqueIDseed} = $uniqueIDseed;
 
 	# Rebless this PDB object, depending on its type and/or
 	# creator. This allows us to magically invoke the proper
@@ -465,18 +465,18 @@ sub Load
 	# and finally for one that deals with anything.
 
 	my $handler;
-	if ($self->{"attributes"}{"resource"})
+	if ($self->{attributes}{resource})
 	{
 		# Look among resource handlers
-		$handler = $PRCHandlers{$self->{"creator"}}{$self->{"type"}} ||
-			$PRCHandlers{undef}{$self->{"type"}} ||
-			$PRCHandlers{$self->{"creator"}}{""} ||
+		$handler = $PRCHandlers{$self->{creator}}{$self->{type}} ||
+			$PRCHandlers{undef}{$self->{type}} ||
+			$PRCHandlers{$self->{creator}}{""} ||
 			$PRCHandlers{""}{""};
 	} else {
 		# Look among record handlers
-		$handler = $PDBHandlers{$self->{"creator"}}{$self->{"type"}} ||
-			$PDBHandlers{""}{$self->{"type"}} ||
-			$PDBHandlers{$self->{"creator"}}{""} ||
+		$handler = $PDBHandlers{$self->{creator}}{$self->{type}} ||
+			$PDBHandlers{""}{$self->{type}} ||
+			$PDBHandlers{$self->{creator}}{""} ||
 			$PDBHandlers{""}{""};
 	}
 
@@ -497,10 +497,10 @@ sub Load
 	my $numrecs;
 
 	($next_index, $numrecs) = unpack "N n", $buf;
-	$self->{"_numrecs"} = $numrecs;
+	$self->{_numrecs} = $numrecs;
 
 	# Read the index itself
-	if ($self->{"attributes"}{"resource"})
+	if ($self->{attributes}{resource})
 	{
 		&_load_rsrc_index($self, \*PDB);
 	} else {
@@ -512,19 +512,19 @@ sub Load
 	$self->{"2NULs"} = $buf;
 
 	# Read AppInfo block, if it exists
-	if ($self->{"_appinfo_offset"} != 0)
+	if ($self->{_appinfo_offset} != 0)
 	{
 		&_load_appinfo_block($self, \*PDB);
 	}
 
 	# Read sort block, if it exists
-	if ($self->{"_sort_offset"} != 0)
+	if ($self->{_sort_offset} != 0)
 	{
 		&_load_sort_block($self, \*PDB);
 	}
 
 	# Read record/resource list
-	if ($self->{"attributes"}{"resource"})
+	if ($self->{attributes}{resource})
 	{
 		&_load_resources($self, \*PDB);
 	} else {
@@ -533,11 +533,11 @@ sub Load
 
 	# These keys were needed for parsing the file, but are not
 	# needed any longer. Delete them.
-	delete $self->{"_index"};
-	delete $self->{"_numrecs"};
-	delete $self->{"_appinfo_offset"};
-	delete $self->{"_sort_offset"};
-	delete $self->{"_size"};
+	delete $self->{_index};
+	delete $self->{_numrecs};
+	delete $self->{_appinfo_offset};
+	delete $self->{_sort_offset};
+	delete $self->{_size};
 
 	close PDB;
 }
@@ -549,9 +549,10 @@ sub _load_rec_index
 	my $pdb = shift;
 	my $fh = shift;		# Input file handle
 	my $i;
+my $lastoffset = 0;
 
 	# Read each record index entry in turn
-	for ($i = 0; $i < $pdb->{"_numrecs"}; $i++)
+	for ($i = 0; $i < $pdb->{_numrecs}; $i++)
 	{
 		my $buf;		# Input buffer
 
@@ -568,13 +569,18 @@ sub _load_rec_index
 		# bytes, but it's really a double word (long) value.
 
 		($offset, $attributes, @id) = unpack "N C C3", $buf;
+if ($offset == $lastoffset)
+{
+print STDERR "Record $i has same offset as previous one: $offset\n";
+}
+$lastoffset = $offset;
 
-		$entry->{"offset"} = $offset;
-		$entry->{"attributes"}{"expunged"} = 1 if $attributes & 0x80;
-		$entry->{"attributes"}{"dirty"} = 1 if $attributes & 0x40;
-		$entry->{"attributes"}{"deleted"} = 1 if $attributes & 0x20;
-		$entry->{"attributes"}{"private"} = 1 if $attributes & 0x10;
-		$entry->{"id"} = ($id[0] << 16) |
+		$entry->{offset} = $offset;
+		$entry->{attributes}{expunged} = 1 if $attributes & 0x80;
+		$entry->{attributes}{dirty} = 1 if $attributes & 0x40;
+		$entry->{attributes}{deleted} = 1 if $attributes & 0x20;
+		$entry->{attributes}{private} = 1 if $attributes & 0x10;
+		$entry->{id} = ($id[0] << 16) |
 				($id[1] << 8) |
 				$id[2];
 
@@ -586,14 +592,14 @@ sub _load_rec_index
 		# category that the record belongs in.
 		if (($attributes & 0xa0) == 0)
 		{
-			$entry->{"category"} = $attributes & 0x0f;
+			$entry->{category} = $attributes & 0x0f;
 		} else {
-			$entry->{"attributes"}{"archive"} = 1
+			$entry->{attributes}{archive} = 1
 				if $attributes & 0x08;
 		}
 
 		# Put this information on a temporary array
-		push @{$pdb->{"_index"}}, $entry;
+		push @{$pdb->{_index}}, $entry;
 	}
 }
 
@@ -606,7 +612,7 @@ sub _load_rsrc_index
 	my $i;
 
 	# Read each resource index entry in turn
-	for ($i = 0; $i < $pdb->{"_numrecs"}; $i++)
+	for ($i = 0; $i < $pdb->{_numrecs}; $i++)
 	{
 		my $buf;		# Input buffer
 
@@ -620,11 +626,11 @@ sub _load_rsrc_index
 
 		($type, $id, $offset) = unpack "a4 n N", $buf;
 
-		$entry->{"type"} = $type;
-		$entry->{"id"} = $id;
-		$entry->{"offset"} = $offset;
+		$entry->{type} = $type;
+		$entry->{id} = $id;
+		$entry->{offset} = $offset;
 
-		push @{$pdb->{"_index"}}, $entry;
+		push @{$pdb->{_index}}, $entry;
 	}
 }
 
@@ -639,10 +645,10 @@ sub _load_appinfo_block
 
 	# Sanity check: make sure we're positioned at the beginning of
 	# the AppInfo block
-	if (tell($fh) != $pdb->{"_appinfo_offset"})
+	if (tell($fh) != $pdb->{_appinfo_offset})
 	{
 		die "Bad AppInfo offset: expected ",
-			sprintf("0x%08x", $pdb->{"_appinfo_offset"}),
+			sprintf("0x%08x", $pdb->{_appinfo_offset}),
 			", but I'm at ",
 			tell($fh), "\n";
 	}
@@ -654,27 +660,27 @@ sub _load_appinfo_block
 	# That's either the sort block, the first data record, or the
 	# end of the file.
 
-	if ($pdb->{"_sort_offset"})
+	if ($pdb->{_sort_offset})
 	{
 		# The next thing in the file is the sort block
-		$len = $pdb->{"_sort_offset"} - $pdb->{"_appinfo_offset"};
-	} elsif ((defined $pdb->{"_index"}) && (@{$pdb->{"_index"}} != ()))
+		$len = $pdb->{_sort_offset} - $pdb->{_appinfo_offset};
+	} elsif ((defined $pdb->{_index}) && (@{$pdb->{_index}} != ()))
 	{
 		# There's no sort block; the next thing in the file is
 		# the first data record
-		$len = $pdb->{"_index"}[0]{"offset"} -
-			$pdb->{"_appinfo_offset"};
+		$len = $pdb->{_index}[0]{offset} -
+			$pdb->{_appinfo_offset};
 	} else {
 		# There's no sort block and there are no records. The
 		# AppInfo block goes to the end of the file.
-		$len = $pdb->{"_size"} - $pdb->{"_appinfo_offset"};
+		$len = $pdb->{_size} - $pdb->{_appinfo_offset};
 	}
 
 	# Read the AppInfo block
 	read $fh, $buf, $len;
 
 	# Tell the real class to parse the AppInfo block
-	$pdb->{"appinfo"} = $pdb->ParseAppInfoBlock($buf);
+	$pdb->{appinfo} = $pdb->ParseAppInfoBlock($buf);
 }
 
 # _load_sort_block
@@ -688,10 +694,10 @@ sub _load_sort_block
 
 	# Sanity check: make sure we're positioned at the beginning of
 	# the sort block
-	if (tell($fh) != $pdb->{"_sort_offset"})
+	if (tell($fh) != $pdb->{_sort_offset})
 	{
 		die "Bad sort block offset: expected ",
-			sprintf("0x%08x", $pdb->{"_sort_offset"}),
+			sprintf("0x%08x", $pdb->{_sort_offset}),
 			", but I'm at ",
 			tell($fh), "\n";
 	}
@@ -702,15 +708,15 @@ sub _load_sort_block
 	# and whatever's next in the file. That's either the first
 	# data record, or the end of the file.
 
-	if (defined($pdb->{"_index"}))
+	if (defined($pdb->{_index}))
 	{
 		# The next thing in the file is the first data record
-		$len = $pdb->{"_index"}[0]{"offset"} -
-			$pdb->{"_sort_offset"};
+		$len = $pdb->{_index}[0]{offset} -
+			$pdb->{_sort_offset};
 	} else {
 		# There are no records. The sort block goes to the end
 		# of the file.
-		$len = $pdb->{"_size"} - $pdb->{"_sort_offset"};
+		$len = $pdb->{_size} - $pdb->{_sort_offset};
 	}
 
 	# Read the AppInfo block
@@ -721,7 +727,7 @@ sub _load_sort_block
 	# block here.
 
 	# Tell the real class to parse the sort block
-	$pdb->{"sort"} = $pdb->ParseSortBlock($buf);
+	$pdb->{sort} = $pdb->ParseSortBlock($buf);
 }
 
 # _load_records
@@ -734,18 +740,18 @@ sub _load_records
 	my $i;
 
 	# Read each record in turn
-	for ($i = 0; $i < $pdb->{"_numrecs"}; $i++)
+	for ($i = 0; $i < $pdb->{_numrecs}; $i++)
 	{
 		my $len;	# Length of record
 		my $buf;	# Input buffer
 
 		# Sanity check: make sure we're where we think we
 		# should be.
-		if (tell($fh) != $pdb->{"_index"}[$i]{"offset"})
+		if (tell($fh) != $pdb->{_index}[$i]{offset})
 		{
 			die "Bad offset for record $i: expected ",
 				sprintf("0x%08x",
-					$pdb->{"_index"}[$i]{"offset"}),
+					$pdb->{_index}[$i]{offset}),
 				" but it's at ",
 				sprintf("0x%08x", tell($fh)), "\n";
 		}
@@ -753,15 +759,15 @@ sub _load_records
 		# Compute the length of the record: the last record
 		# extends to the end of the file. The others extend to
 		# the beginning of the next record.
-		if ($i == $pdb->{"_numrecs"} - 1)
+		if ($i == $pdb->{_numrecs} - 1)
 		{
 			# This is the last record
-			$len = $pdb->{"_size"} -
-				$pdb->{"_index"}[$i]{"offset"};
+			$len = $pdb->{_size} -
+				$pdb->{_index}[$i]{offset};
 		} else {
 			# This is not the last record
-			$len = $pdb->{"_index"}[$i+1]{"offset"} -
-				$pdb->{"_index"}[$i]{"offset"};
+			$len = $pdb->{_index}[$i+1]{offset} -
+				$pdb->{_index}[$i]{offset};
 		}
 
 		# Read the record
@@ -773,10 +779,10 @@ sub _load_records
 		my $record;
 
 		$record = $pdb->ParseRecord(
-			%{$pdb->{"_index"}[$i]},
+			%{$pdb->{_index}[$i]},
 			"data"	=> $buf,
 			);
-		push @{$pdb->{"records"}}, $record;
+		push @{$pdb->{records}}, $record;
 	}
 }
 
@@ -790,18 +796,18 @@ sub _load_resources
 	my $i;
 
 	# Read each resource in turn
-	for ($i = 0; $i < $pdb->{"_numrecs"}; $i++)
+	for ($i = 0; $i < $pdb->{_numrecs}; $i++)
 	{
 		my $len;	# Length of record
 		my $buf;	# Input buffer
 
 		# Sanity check: make sure we're where we think we
 		# should be.
-		if (tell($fh) != $pdb->{"_index"}[$i]{"offset"})
+		if (tell($fh) != $pdb->{_index}[$i]{offset})
 		{
 			die "Bad offset for resource $i: expected ",
 				sprintf("0x%08x",
-					$pdb->{"_index"}[$i]{"offset"}),
+					$pdb->{_index}[$i]{offset}),
 				" but it's at ",
 				sprintf("0x%08x", tell($fh)), "\n";
 		}
@@ -809,15 +815,15 @@ sub _load_resources
 		# Compute the length of the resource: the last
 		# resource extends to the end of the file. The others
 		# extend to the beginning of the next resource.
-		if ($i == $pdb->{"_numrecs"} - 1)
+		if ($i == $pdb->{_numrecs} - 1)
 		{
 			# This is the last resource
-			$len = $pdb->{"_size"} -
-				$pdb->{"_index"}[$i]{"offset"};
+			$len = $pdb->{_size} -
+				$pdb->{_index}[$i]{offset};
 		} else {
 			# This is not the last resource
-			$len = $pdb->{"_index"}[$i+1]{"offset"} -
-				$pdb->{"_index"}[$i]{"offset"};
+			$len = $pdb->{_index}[$i+1]{offset} -
+				$pdb->{_index}[$i]{offset};
 		}
 
 		# Read the resource
@@ -830,10 +836,10 @@ sub _load_resources
 		my $resource;
 
 		$resource = $pdb->ParseResource(
-			%{$pdb->{"_index"}[$i]},
+			%{$pdb->{_index}[$i]},
 			"data"	=> $buf,
 			);
-		push @{$pdb->{"resources"}}, $resource;
+		push @{$pdb->{resources}}, $resource;
 	}
 }
 
@@ -889,12 +895,12 @@ sub Write
 	my $index_len;
 
 	# Get records or resources
-	if ($self->{"attributes"}{"resource"})
+	if ($self->{attributes}{resource})
 	{
 		# Resource database
 		my $resource;
 
-		foreach $resource (@{$self->{"resources"}})
+		foreach $resource (@{$self->{resources}})
 		{
 			my $type;
 			my $id;
@@ -902,8 +908,8 @@ sub Write
 
 			# Get all the stuff that goes in the index, as
 			# well as the resource data.
-			$type = $resource->{"type"};
-			$id = $resource->{"id"};
+			$type = $resource->{type};
+			$id = $resource->{id};
 			$data = $self->PackResource($resource);
 
 			push @record_data, [ $type, $id, $data ];
@@ -914,7 +920,7 @@ sub Write
 	} else {
 		my $record;
 
-		foreach $record (@{$self->{"records"}})
+		foreach $record (@{$self->{records}})
 		{
 			my $attributes;
 			my $id;
@@ -923,19 +929,19 @@ sub Write
 			# Get all the stuff that goes in the index, as
 			# well as the record data.
 			$attributes = 0;
-			$attributes = ($record->{"category"} & 0x0f)
-				unless ($record->{"attributes"}{"expunged"} ||
-					$record->{"attributes"}{"deleted"});
+			$attributes = ($record->{category} & 0x0f)
+				unless ($record->{attributes}{expunged} ||
+					$record->{attributes}{deleted});
 			$attributes |= 0x80
-				if $record->{"attributes"}{"expunged"};
+				if $record->{attributes}{expunged};
 			$attributes |= 0x40
-				if $record->{"attributes"}{"dirty"};
+				if $record->{attributes}{dirty};
 			$attributes |= 0x20
-				if $record->{"attributes"}{"deleted"};
+				if $record->{attributes}{deleted};
 			$attributes |= 0x10
-				if $record->{"attributes"}{"private"};
+				if $record->{attributes}{private};
 
-			$id = $record->{"id"};
+			$id = $record->{id};
 
 			$data = $self->PackRecord($record);
 
@@ -953,13 +959,13 @@ sub Write
 
 	# Build attributes field
 	$attributes =
-		($self->{"attributes"}{"resource"}	? 0x0001 : 0) |
-		($self->{"attributes"}{"read-only"}	? 0x0002 : 0) |
-		($self->{"attributes"}{"AppInfo dirty"}	? 0x0004 : 0) |
-		($self->{"attributes"}{"backup"}	? 0x0008 : 0) |
-		($self->{"attributes"}{"OK newer"}	? 0x0010 : 0) |
-		($self->{"attributes"}{"reset"}		? 0x0020 : 0) |
-		($self->{"attributes"}{"open"}		? 0x0040 : 0);
+		($self->{attributes}{resource}	? 0x0001 : 0) |
+		($self->{attributes}{"read-only"}	? 0x0002 : 0) |
+		($self->{attributes}{"AppInfo dirty"}	? 0x0004 : 0) |
+		($self->{attributes}{backup}	? 0x0008 : 0) |
+		($self->{attributes}{"OK newer"}	? 0x0010 : 0) |
+		($self->{attributes}{reset}		? 0x0020 : 0) |
+		($self->{attributes}{open}		? 0x0040 : 0);
 
 	# Calculate AppInfo block offset
 	if ($appinfo_block eq "")
@@ -991,18 +997,18 @@ sub Write
 
 	# Write header
 	$header = pack "a32 n n N N N N N N a4 a4 N",
-		$self->{"name"},
+		$self->{name},
 		$attributes,
-		$self->{"version"},
-		$self->{"ctime"} + $EPOCH_1904,
-		$self->{"mtime"} + $EPOCH_1904,
-		$self->{"baktime"} + $EPOCH_1904,
-		$self->{"modnum"},
+		$self->{version},
+		$self->{ctime} + $EPOCH_1904,
+		$self->{mtime} + $EPOCH_1904,
+		$self->{baktime} + $EPOCH_1904,
+		$self->{modnum},
 		$appinfo_offset,
 		$sort_offset,
-		$self->{"type"},
-		$self->{"creator"},
-		$self->{"uniqueIDseed"};
+		$self->{type},
+		$self->{creator},
+		$self->{uniqueIDseed};
 		;
 
 	print OFILE "$header";
@@ -1027,7 +1033,7 @@ sub Write
 		$rec_offset = $HeaderLen + $index_len + 2;
 	}
 
-	if ($self->{"attributes"}{"resource"})
+	if ($self->{attributes}{resource})
 	{
 		# Resource database
 		# Record database
@@ -1093,7 +1099,7 @@ sub Write
 	{
 		my $data;
 
-		if ($self->{"attributes"}{"resource"})
+		if ($self->{attributes}{resource})
 		{
 			# Resource database
 			my $type;
@@ -1119,12 +1125,12 @@ sub Write
 
 Creates a new record, with the bare minimum needed:
 
-	$record->{"category"}
-	$record->{"attributes"}{"expunged"}
-	$record->{"attributes"}{"dirty"}
-	$record->{"attributes"}{"deleted"}
-	$record->{"attributes"}{"private"}
-	$record->{"id"}
+	$record->{category}
+	$record->{attributes}{expunged}
+	$record->{attributes}{dirty}
+	$record->{attributes}{deleted}
+	$record->{attributes}{private}
+	$record->{id}
 
 The ``dirty'' attribute is originally set, since this function will
 usually be called to create records to be added to a database.
@@ -1141,14 +1147,14 @@ sub new_Record
 	my $retval = {};
 
 	# Initialize the record
-	$retval->{"category"} = 0;	# Unfiled, by convention
-	$retval->{"attributes"} = {
+	$retval->{category} = 0;	# Unfiled, by convention
+	$retval->{attributes} = {
 		expunged	=> 0,
 		dirty		=> 1,	# Note: originally dirty
 		deleted		=> 0,
 		private		=> 0,
 	};
-	$retval->{"id"} = 0;		# Initially, no record ID
+	$retval->{id} = 0;		# Initially, no record ID
 
 	return $retval;
 }
@@ -1162,7 +1168,7 @@ If called without any arguments, creates a new record with
 L<new_Record()|/new_Record>, and appends it to $pdb.
 
 If given a reference to a record, appends that record to
-@{$pdb->{"records"}}.
+@{$pdb->{records}}.
 
 Returns a reference to the newly-appended record.
 
@@ -1184,20 +1190,20 @@ sub append_Record
 		# No arguments given. Create a new record.
 		my $record = $self->new_Record;
 
-		push @{$self->{"records"}}, $record;
+		push @{$self->{records}}, $record;
 
 		# Update the "last modification time".
-		$self->{"mtime"} = time;
+		$self->{mtime} = time;
 
 		return $record;
 	}
 
 	# At least one argument was given. Append all of the arguments
 	# to the list of records, and return the first one.
-	push @{$self->{"records"}}, @_;
+	push @{$self->{records}}, @_;
 
 	# Update the "last modification time".
-	$self->{"mtime"} = time;
+	$self->{mtime} = time;
 
 	return $_[0];
 }
@@ -1209,8 +1215,8 @@ sub append_Record
 
 Creates a new resource and initializes
 
-	$resource->{"type"}
-	$resource->{"id"}
+	$resource->{type}
+	$resource->{id}
 
 =cut
 
@@ -1222,8 +1228,8 @@ sub new_Resource
 	my $retval = {};
 
 	# Initialize the resource
-	$retval->{"type"} = "    ";	# XXX - Is this sane?
-	$retval->{"id"} = 0;
+	$retval->{type} = "    ";	# XXX - Is this sane?
+	$retval->{id} = 0;
 
 	return $retval;
 }
@@ -1237,7 +1243,7 @@ If called without any arguments, creates a new resource with
 L<new_Resource()|/new_Resource>, and appends it to $pdb.
 
 If given a reference to a resource, appends that resource to
-@{$pdb->{"resources"}}.
+@{$pdb->{resources}}.
 
 Returns a reference to the newly-appended resource.
 
@@ -1259,20 +1265,20 @@ sub append_Resource
 		# No arguments given. Create a new resource
 		my $resource = $self->new_Resource;
 
-		push @{$self->{"resources"}}, $resource;
+		push @{$self->{resources}}, $resource;
 
 		# Update the "last modification time".
-		$self->{"mtime"} = time;
+		$self->{mtime} = time;
 
 		return $resource;
 	}
 
 	# At least one argument was given. Append all of the arguments
 	# to the list of resources, and return the first one.
-	push @{$self->{"resources"}}, @_;
+	push @{$self->{resources}}, @_;
 
 	# Update the "last modification time".
-	$self->{"mtime"} = time;
+	$self->{mtime} = time;
 
 	return $_[0];
 }
@@ -1297,9 +1303,9 @@ sub findRecordByID
 
 	return undef if $id eq "";
 
-	for (@{$self->{"records"}})
+	for (@{$self->{records}})
 	{
-		next unless $_->{"id"} == $id;
+		next unless $_->{id} == $id;
 		return $_;		# Found it
 	}
 
@@ -1334,18 +1340,18 @@ sub delete_Record
 	my $record = shift;
 	my $expunge = shift;
 
-	$record->{"attributes"}{"deleted"} = 1;
+	$record->{attributes}{deleted} = 1;
 	if ($expunge)
 	{
-		$record->{"attributes"}{"expunged"} = 1;
-		$record->{"attributes"}{"archive"} = 0;
+		$record->{attributes}{expunged} = 1;
+		$record->{attributes}{archive} = 0;
 	} else {
-		$record->{"attributes"}{"expunged"} = 0;
-		$record->{"attributes"}{"archive"} = 1;
+		$record->{attributes}{expunged} = 0;
+		$record->{attributes}{archive} = 1;
 	}
 
 	# Update the "last modification time".
-	$self->{"mtime"} = time;
+	$self->{mtime} = time;
 }
 
 1;
@@ -1375,14 +1381,14 @@ This method will not be called if the database does not have an
 AppInfo block.
 
 The return value from ParseAppInfoBlock() will be accessible as
-$pdb->{"appinfo"}.
+$pdb->{appinfo}.
 
 =head2 PackAppInfoBlock
 
   $buf = $pdb->PackAppInfoBlock();
 
 This is the converse of ParseAppInfoBlock(). It takes $pdb's AppInfo
-block, $pdb->{"appinfo"}, and returns a string of binary data
+block, $pdb->{appinfo}, and returns a string of binary data
 that can be written to the database file.
 
 =head2 ParseSortBlock
@@ -1397,14 +1403,14 @@ This method will not be called if the database does not have a sort
 block.
 
 The return value from ParseSortBlock() will be accessible as
-$pdb->{"sort"}.
+$pdb->{sort}.
 
 =head2 PackSortBlock
 
   $buf = $pdb->PackSortBlock();
 
 This is the converse of ParseSortBlock(). It takes $pdb's sort block,
-$pdb->{"sort"}, and returns a string of raw data that can be
+$pdb->{sort}, and returns a string of raw data that can be
 written to the database file.
 
 =head2 ParseRecord
@@ -1428,7 +1434,7 @@ representation of the record, typically as a reference to a record
 object or anonymous hash.
 
 The output from ParseRecord() will be appended to
-@{$pdb->{"records"}}. The records appear in this list in the
+@{$pdb->{records}}. The records appear in this list in the
 same order as they appear in the file.
 
 $offset argument is not normally useful, but is included for
@@ -1448,10 +1454,10 @@ A typical ParseRecord() method has this general form:
         my $self = shift
         my %record = @_;
 
-        # Parse $self->{"data"} and put the fields into new fields in
+        # Parse $self->{data} and put the fields into new fields in
         # $self.
 
-        delete $record{"data"};		# No longer useful
+        delete $record{data};		# No longer useful
         return \%record;
     }
 
@@ -1479,7 +1485,7 @@ representation of the resource, typically as a reference to a resource
 object or anonymous hash.
 
 The output from ParseResource() will be appended to
-@{$pdb->{"resources"}}. The resources appear in this list in
+@{$pdb->{resources}}. The resources appear in this list in
 the same order as they appear in the file.
 
 $type is a four-character string giving the resource's type.

@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Memo.pm,v 1.5 2000-04-24 09:59:48 arensb Exp $
+# $Id: Memo.pm,v 1.6 2000-05-07 06:31:33 arensb Exp $
 
 use strict;
 package Palm::Memo;
@@ -14,7 +14,7 @@ use Palm::Raw();
 use Palm::StdAppInfo;
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.5 $ ))[1];
+$VERSION = (qw( $Revision: 1.6 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -37,21 +37,21 @@ L<Palm::StdAppInfo> for details.
 
 Other fields include:
 
-    $pdb->{"appinfo"}{"sortOrder"}
+    $pdb->{appinfo}{sortOrder}
 
 I don't know what this is.
 
 =head2 Sort block
 
-    $pdb->{"sort"}
+    $pdb->{sort}
 
 This is a scalar, the raw data of the sort block.
 
 =head2 Records
 
-    $record = $pdb->{"records"}[N]
+    $record = $pdb->{records}[N]
 
-    $record->{"data"}
+    $record->{data}
 
 A string, the text of the memo.
 
@@ -83,27 +83,27 @@ sub new
 			# Create a generic PDB. No need to rebless it,
 			# though.
 
-	$self->{"name"} = "MemoDB";	# Default
-	$self->{"creator"} = "memo";
-	$self->{"type"} = "DATA";
-	$self->{"attributes"}{"resource"} = 0;
+	$self->{name} = "MemoDB";	# Default
+	$self->{creator} = "memo";
+	$self->{type} = "DATA";
+	$self->{attributes}{resource} = 0;
 				# The PDB is not a resource database by
 				# default, but it's worth emphasizing,
 				# since MemoDB is explicitly not a PRC.
 
 	# Initialize the AppInfo block
-	$self->{"appinfo"} = {
+	$self->{appinfo} = {
 		sortOrder	=> undef,	# XXX - ?
 	};
 
 	# Add the standard AppInfo block stuff
-	&Palm::StdAppInfo::seed_StdAppInfo($self->{"appinfo"});
+	&Palm::StdAppInfo::seed_StdAppInfo($self->{appinfo});
 
 	# Give the PDB a blank sort block
-	$self->{"sort"} = undef;
+	$self->{sort} = undef;
 
 	# Give the PDB an empty list of records
-	$self->{"records"} = [];
+	$self->{records} = [];
 
 	return $self;
 }
@@ -121,7 +121,7 @@ sub new_Record
 	my $classname = shift;
 	my $retval = $classname->SUPER::new_Record(@_);
 
-	$retval->{"data"} = "";
+	$retval->{data} = "";
 
 	return $retval;
 }
@@ -149,7 +149,7 @@ sub ParseAppInfoBlock
 
 	($sortOrder) = unpack $unpackstr, $data;
 
-	$appinfo->{"sortOrder"} = $sortOrder;
+	$appinfo->{sortOrder} = $sortOrder;
 
 	return $appinfo;
 }
@@ -161,10 +161,10 @@ sub PackAppInfoBlock
 	my $i;
 
 	# Pack the standard part of the AppInfo block
-	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{"appinfo"});
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
 
 	# And the application-specific stuff
-	$retval .= pack("x4 C x1", $self->{"appinfo"}{"sortOrder"});
+	$retval .= pack("x4 C x1", $self->{appinfo}{sortOrder});
 
 	return $retval;
 }
@@ -180,8 +180,8 @@ sub ParseRecord
 	my $self = shift;
 	my %record = @_;
 
-	delete $record{"offset"};	# This is useless
-	$record{"data"} =~ s/\0$//;	# Trim trailing NUL
+	delete $record{offset};		# This is useless
+	$record{data} =~ s/\0$//;	# Trim trailing NUL
 
 	return \%record;
 }
@@ -191,7 +191,7 @@ sub PackRecord
 	my $self = shift;
 	my $record = shift;
 
-	return $record->{"data"} . "\0";	# Add the trailing NUL
+	return $record->{data} . "\0";	# Add the trailing NUL
 }
 
 1;
