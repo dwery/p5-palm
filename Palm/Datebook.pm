@@ -1,4 +1,4 @@
-# Palm::PDB::Datebook.pm
+# Palm::Datebook.pm
 # 
 # Perl class for dealing with Palm DateBook databases. 
 #
@@ -6,13 +6,13 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.1 1999-11-18 05:16:03 arensb Exp $
+# $Id: Datebook.pm,v 1.2 1999-11-18 06:20:14 arensb Exp $
 
-package Palm::PDB::Datebook;
+package Palm::Datebook;
 
-use Palm::PDB::Raw();
+use Palm::Raw();
 
-@ISA = qw( Palm::PDB::Raw );
+@ISA = qw( Palm::Raw );
 
 $numCategories = 16;		# Number of categories in AppInfo block
 $categoryLength = 16;		# Length of category names
@@ -497,11 +497,11 @@ __END__
 
 =head1 NAME
 
-Palm::PDB::Datebook - Handler for Palm DateBook databases.
+Palm::Datebook - Handler for Palm DateBook databases.
 
 =head1 SYNOPSIS
 
-    use Palm::PDB::Datebook;
+    use Palm::Datebook;
 
 =head1 DESCRIPTION
 

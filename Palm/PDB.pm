@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.1 1999-11-18 05:15:20 arensb Exp $
+# $Id: PDB.pm,v 1.2 1999-11-18 06:20:48 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -1106,7 +1106,7 @@ expected to convert raw data from the database into parsed
 representations of it, and vice-versa.
 
 A helper class must have all of the methods listed below. The
-Palm::PDB::Raw class is useful if you don't want to define all of the
+Palm::Raw class is useful if you don't want to define all of the
 required methods.
 
 
@@ -1263,17 +1263,17 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 
 =head1 SEE ALSO
 
-Palm::PDB::Raw(1)
+Palm::Raw(1)
 
-Palm::PDB::Address(1)
+Palm::Address(1)
 
-Palm::PDB::Datebook(1)
+Palm::Datebook(1)
 
-Palm::PDB::Mail(1)
+Palm::Mail(1)
 
-Palm::PDB::Memo(1)
+Palm::Memo(1)
 
-Palm::PDB::ToDo(1)
+Palm::ToDo(1)
 
 F<Palm Database Files>, in the ColdSync distribution.
 
