@@ -1,0 +1,38 @@
+	This is p5-Palm, a set of Perl 5 modules for reading,
+manipulating, and writing the .pdb and .prc database files used by
+PalmOS devices such as the PalmPilot and its successors.
+
+	Copyright (C) 1999, 2000 by Andrew Arensburger
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the Artistic License, a copy of which
+    can be found with the Perl distribution.
+
+    This code is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    Artistic License for more details.
+
+* INSTALLING:
+
+	This is pretty standard:
+	- Run "perl Makefile.PL" to create the Makefile.
+	- Run "make" to build everything.
+	- Run "make install" to install the package.
+Easy, huh?
+
+* DOCUMENTATION:
+
+	All documentation is in the form of PODs embedded in the
+module files themselves. Use
+	pod2text Palm/PDB.pm
+to read the documentation for Palm::PDB.
+	You'll want to start with Palm::PDB, then Palm::Raw, then the
+others.
+
+* FEEDBACK:
+
+	If you have any comments, suggestions, bug reports, patches,
+etc., please send mail to the maintainer, Andrew Arensburger, at
+<arensb@ooblick.com>. See also
+	http://www.ooblick.com/software/coldsync/
