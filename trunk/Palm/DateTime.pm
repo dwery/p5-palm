@@ -21,6 +21,8 @@ use strict;
 use Exporter;
 use POSIX;
 
+# One liner, to allow MakeMaker to work.
+$Palm::DateTime::VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @Palm::DateTime::ISA = qw( Exporter );
 
