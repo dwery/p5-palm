@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 2.0 2000-05-08 09:48:36 arensb Exp $
+# $Id: pdbdump,v 2.1 2000-08-02 03:19:56 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -17,7 +17,7 @@ use Palm::ToDo;
 
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
-$VERSION = (qw( $Revision: 2.0 $ ))[1];
+$VERSION = (qw( $Revision: 2.1 $ ))[1];
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
@@ -81,6 +81,7 @@ sub rawread
 
 	# Open database file
 	open PDB, "< $fname" or die "Can't open \"$fname\": $!\n";
+	binmode PDB;			# Parse as binary file under MS-DOS
 
 	# Get the size of the file. It'll be useful later
 	seek PDB, 0, 2;		# 2 == SEEK_END. Seek to the end.
