@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.19 2002-11-07 14:11:51 arensb Exp $
+# $Id: Datebook.pm,v 1.20 2003-10-10 23:19:58 azummo Exp $
 
 use strict;
 package Palm::Datebook;
@@ -16,7 +16,7 @@ use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.19 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.20 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @ISA = qw( Palm::StdAppInfo Palm::Raw );
 
@@ -84,7 +84,11 @@ specifies how many units before the event the alarm should ring.
 I<e.g.>, if "unit" is 1 and "advance" is 5, then the alarm will sound
 5 hours before the event.
 
-If "advance" is -1, then there is no alarm associated with this event.
+If C<advance> is -1, then there is no alarm associated with this event.
+New records created via C<new_Record> have a 10 minute alarm set by
+default. C<undef $record->{alarm}> to remove this alarm before writing.
+An alarm icon will still show up in the Datebook if the C<alarm>
+field exists, even with C<advance> set to -1.
 
     %{$record->{repeat}}
 
