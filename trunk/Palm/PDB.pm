@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.26 2002-06-16 13:26:11 azummo Exp $
+# $Id: PDB.pm,v 1.27 2002-06-16 13:37:25 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.26 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.27 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 =head1 NAME
 
@@ -317,26 +317,36 @@ After Load() returns, $pdb may contain the following fields:
 
 The name of the database.
 
-=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"resource"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"ResDB"Z<>}
 
-=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"read-only"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"ReadOnly"Z<>}
 
-=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"AppInfo dirty"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"AppInfoDirty"Z<>}
 
-=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"backup"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"Backup"Z<>}
 
-=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"OK newer"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"OKToInstallNewer"Z<>}
 
-=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"reset"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"ResetAfterInstall"Z<>}
 
-=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"open"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"CopyPrevention"Z<>}
 
-=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"launchable"Z<>}
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"Stream"Z<>}
+
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"Hidden"Z<>}
+
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"LaunchableData"Z<>}
+
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"Recyclable"Z<>}
+
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"Bundle"Z<>}
+
+=item $pdb-E<gt>{Z<>"attributes"Z<>}{Z<>"Open"Z<>}
 
 These are the attribute flags from the database header. Each is true
 iff the corresponding flag is set.
 
-The "launchable" attribute is set on PQAs.
+The "LaunchableData" attribute is set on PQAs.
 
 =item $pdb-E<gt>{Z<>"version"Z<>}
 
@@ -494,7 +504,7 @@ sub Load
 	# and finally for one that deals with anything.
 
 	my $handler;
-	if ($self->{attributes}{resource})
+	if ($self->{attributes}{resource} || $self->{'attributes'}{'ResDB'})
 	{
 		# Look among resource handlers
 		$handler = $PRCHandlers{$self->{creator}}{$self->{type}} ||
@@ -529,7 +539,7 @@ sub Load
 	$self->{_numrecs} = $numrecs;
 
 	# Read the index itself
-	if ($self->{attributes}{resource})
+	if ($self->{attributes}{resource} || $self->{'attributes'}{'ResDB'})
 	{
 		&_load_rsrc_index($self, \*PDB);
 	} else {
@@ -557,7 +567,7 @@ sub Load
 	}
 
 	# Read record/resource list
-	if ($self->{attributes}{resource})
+	if ($self->{attributes}{resource} || $self->{'attributes'}{'ResDB'})
 	{
 		&_load_resources($self, \*PDB);
 	} else {
@@ -964,7 +974,7 @@ sub Write
 	my $index_len;
 
 	# Get records or resources
-	if ($self->{attributes}{resource})
+	if ($self->{attributes}{resource} || $self->{'attributes'}{'ResDB'})
 	{
 		# Resource database
 		my $resource;
@@ -1130,7 +1140,7 @@ sub Write
 		$rec_offset = $HeaderLen + $index_len + 2;
 	}
 
-	if ($self->{attributes}{resource})
+	if ($self->{attributes}{resource} || $self->{'attributes'}{'ResDB'})
 	{
 		# Resource database
 		# Record database
@@ -1204,7 +1214,7 @@ sub Write
 	{
 		my $data;
 
-		if ($self->{attributes}{resource})
+		if ($self->{attributes}{resource} || $self->{'attributes'}{'ResDB'})
 		{
 			# Resource database
 			my $type;
@@ -1230,15 +1240,11 @@ sub Write
 
 Creates a new record, with the bare minimum needed:
 
-	$record->{category}
-	$record->{attributes}{expunged}
-	$record->{attributes}{dirty}
-	$record->{attributes}{deleted}
-	$record->{attributes}{private}
-	$record->{attributes}{archive}
-	$record->{id}
+	$record->{'category'}
+	$record->{'attributes'}{'Dirty'}
+	$record->{'id'}
 
-The ``dirty'' attribute is originally set, since this function will
+The ``Dirty'' attribute is originally set, since this function will
 usually be called to create records to be added to a database.
 
 C<new_Record> does B<not> add the new record to a PDB. For that,
@@ -1256,8 +1262,8 @@ sub new_Record
 	my $retval = {};
 
 	# Initialize the record
-	$retval->{category} = 0;	# Unfiled, by convention
-	$retval->{attributes} = {
+	$retval->{'category'} = 0;	# Unfiled, by convention
+	$retval->{'attributes'} = {
 #		expunged	=> 0,
 		dirty		=> 1,	# Note: originally dirty
 		'Dirty'		=> 1,
@@ -1265,7 +1271,7 @@ sub new_Record
 #		private		=> 0,
 #		archive         => 0,
 	};
-	$retval->{id} = 0;		# Initially, no record ID
+	$retval->{'id'} = 0;		# Initially, no record ID
 
 	return $retval;
 }
