@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.11 2000-08-13 22:00:14 arensb Exp $
+# $Id: Datebook.pm,v 1.12 2000-08-13 22:08:53 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.11 $ ))[1];
+$VERSION = (qw( $Revision: 1.12 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -641,7 +641,7 @@ sub PackRecord
 
 	my $description = undef;
 
-	if ($record->{description} ne "")
+	if (defined($record->{description}) && ($record->{description} ne ""))
 	{
 		$flags |= 0x0400;
 		$description = $record->{description} . "\0";
@@ -649,7 +649,7 @@ sub PackRecord
 
 	my $note = undef;
 
-	if ($record->{note} ne "")
+	if (defined($record->{note}) && ($record->{note} ne ""))
 	{
 		$flags |= 0x1000;
 		$note = $record->{note} . "\0";
@@ -663,11 +663,11 @@ sub PackRecord
 		$rawDate,
 		$flags;
 
-	$retval .= $alarm;
-	$retval .= $repeat;
-	$retval .= $exceptions;
-	$retval .= $description;
-	$retval .= $note;
+	$retval .= $alarm	if defined($alarm);
+	$retval .= $repeat	if defined($repeat);
+	$retval .= $exceptions	if defined($exceptions);
+	$retval .= $description	if defined($description);
+	$retval .= $note	if defined($note);
 
 	return $retval;
 }
