@@ -6,15 +6,15 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Memo.pm,v 1.6 2000-05-07 06:31:33 arensb Exp $
+# $Id: Memo.pm,v 1.7 2000-05-23 06:55:53 arensb Exp $
 
 use strict;
 package Palm::Memo;
 use Palm::Raw();
-use Palm::StdAppInfo;
+use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.6 $ ))[1];
+$VERSION = (qw( $Revision: 1.7 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
