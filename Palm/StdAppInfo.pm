@@ -6,9 +6,12 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: StdAppInfo.pm,v 1.1 2000-04-24 10:01:06 arensb Exp $
+# $Id: StdAppInfo.pm,v 1.2 2000-05-06 21:19:17 arensb Exp $
 
 # XXX - Write POD
+
+# XXX - Describe the fields that StdAppInfo creates
+
 # XXX - Methods for adding, removing categories
 
 use strict;
@@ -18,7 +21,7 @@ use Palm::Raw();
 # Don't harass me about these variables
 use vars qw( $VERSION @ISA $numCategories $categoryLength $stdAppInfoSize );
 
-$VERSION = (qw( $Revision: 1.1 $ ))[1];
+$VERSION = (qw( $Revision: 1.2 $ ))[1];
 @ISA = qw( Palm::Raw );
 
 =head1 NAME
@@ -287,6 +290,6 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 
 =head1 SEE ALSO
 
-Palm::PDB(1)
+Palm::PDB(3)
 
 =cut
