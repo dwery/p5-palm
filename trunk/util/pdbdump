@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 3.3 2001-02-20 11:12:27 arensb Exp $
+# $Id: pdbdump,v 3.4 2002-01-26 22:25:22 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -17,7 +17,8 @@ use Palm::ToDo;
 
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
-$VERSION = (qw( $Revision: 3.3 $ ))[1];
+$VERSION = sprintf "%d.%03d_%03d_%03d",
+	'$Revision: 3.4 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;

@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PQA.pm,v 1.1 2000-09-25 05:05:36 arensb Exp $
+# $Id: PQA.pm,v 1.2 2002-01-26 22:25:17 arensb Exp $
 
 # XXX - Write POD
 
@@ -20,7 +20,8 @@ use vars qw( $VERSION @ISA
 	$_in_tag
 	);
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.1 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d_%03d_%03d",
+	'$Revision: 1.2 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::Raw );
 
 sub import

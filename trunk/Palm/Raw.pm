@@ -12,14 +12,15 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Raw.pm,v 1.8 2000-09-24 16:26:06 arensb Exp $
+# $Id: Raw.pm,v 1.9 2002-01-26 22:25:18 arensb Exp $
 
 use strict;
 package Palm::Raw;
 use Palm::PDB;
 use vars qw( $VERSION @ISA );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.8 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d_%03d_%03d",
+	'$Revision: 1.9 $ ' =~ m{(\d+)(?:\.(\d+))};
 @ISA = qw( Palm::PDB );
 
 =head1 NAME
