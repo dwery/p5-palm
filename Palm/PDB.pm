@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.32 2003-10-10 11:01:49 azummo Exp $
+# $Id: PDB.pm,v 1.33 2003-11-10 01:40:25 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.32 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.33 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 =head1 NAME
 
@@ -69,6 +69,12 @@ individual chunks, then writes them to a file.
 
 =cut
 
+use constant dmRecordIDReservedRange => 1;
+					# The range of upper bits in the database's
+					# uniqueIDSeed from 0 to this number are
+					# reserved and not randomly picked when a
+					#database is created.
+
 my $EPOCH_1904 = 2082844800;		# Difference between Palm's
 					# epoch (Jan. 1, 1904) and
 					# Unix's epoch (Jan. 1, 1970),
@@ -77,6 +83,9 @@ my $HeaderLen = 32+2+2+(9*4);		# Size of database header
 my $RecIndexHeaderLen = 6;		# Size of record index header
 my $IndexRecLen = 8;			# Length of record index entry
 my $IndexRsrcLen = 10;			# Length of resource index entry
+
+# XXX Should we 'use constant' for the above vars?
+
 
 %PDBHandlers = ();			# Record handler map
 %PRCHandlers = ();			# Resource handler map
@@ -118,6 +127,23 @@ sub new
 
 	# This will be set when any elements of the object are changed
 	$self->{'dirty'} = 0;
+
+
+	# Calculate a proper uniqueIDseed if the user has not provided
+	# a correct one.
+	if ($self->{'uniqueIDseed'} <= ((dmRecordIDReservedRange + 1) << 12))
+	{
+		my $uniqueIDseed = 0;
+
+		do
+		{
+			$uniqueIDseed = int(rand(0x0FFF));
+
+		} while ($uniqueIDseed <= dmRecordIDReservedRange);
+
+		$self->{'uniqueIDseed'} = $uniqueIDseed << 12;
+		$self->{'uniqueIDseed'} &= 0x00FFF000;		# Isolate the upper 12 seed bits.
+	}
 
 	bless $self, $class;
 	return $self;
@@ -1354,6 +1380,10 @@ sub append_Record
 		# No arguments given. Create a new record.
 		my $record = $self->new_Record;
 
+		# Validate the unique ID.
+		$self->_setUniqueID($record)
+			if $record->{'id'} eq 0;
+
 		push @{$self->{records}}, $record;
 
 		# Update the "last modification time".
@@ -1361,6 +1391,13 @@ sub append_Record
 		$self->{dirty} = 1;
 
 		return $record;
+	}
+
+	# Validate the unique IDs.
+	foreach my $record (@_)
+	{
+		$self->_setUniqueID($record)
+			if $record->{'id'} eq 0;
 	}
 
 	# At least one argument was given. Append all of the arguments
@@ -1372,6 +1409,26 @@ sub append_Record
 	$self->{'dirty'} = 1;
 
 	return $_[0];
+}
+
+sub _setUniqueID
+{
+	my($self, $record) = @_;
+
+	# Bump the seed to prevent a uniqueIDseed of 0 which represents
+	# an unassigned uniqueID.
+	# XXX IMHO this just couldn't happen given the way the seed it's
+	# generated. But if Palm OS goes this way maybe it's better to do
+	# the same.
+
+	$self->{'uniqueIDseed'}++;
+
+	# Check for wrap around. Remember that an uniqueID is made of only 24 bits.
+	$self->{'uniqueIDseed'} = (dmRecordIDReservedRange + 1) << 12
+		if ($self->{'uniqueIDseed'} & 0xFF000000);
+
+	# Copy the seed into the new record.
+	$record->{'id'} = $self->{'uniqueIDseed'};
 }
 
 =head2 new_Resource
