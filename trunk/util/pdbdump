@@ -2,7 +2,7 @@
 #
 # Dump a Palm PDB or PRC database.
 #
-# $Id: pdbdump,v 2.3 2000-09-16 23:53:36 arensb Exp $
+# $Id: pdbdump,v 2.4 2000-09-16 23:57:49 arensb Exp $
 
 use strict;
 use Palm::PDB;
@@ -17,7 +17,7 @@ use Palm::ToDo;
 
 use vars qw( $VERSION %PDBHandlers %PRCHandlers $hexdump );
 
-$VERSION = (qw( $Revision: 2.3 $ ))[1];
+$VERSION = (qw( $Revision: 2.4 $ ))[1];
 
 *PDBHandlers = *Palm::PDB::PDBHandlers;
 *PRCHandlers = *Palm::PDB::PRCHandlers;
@@ -401,7 +401,7 @@ sub _load_appinfo_block
 	{
 		# The next thing in the file is the sort block
 		$len = $pdb->{_sort_offset} - $pdb->{_appinfo_offset};
-	} elsif ((defined $pdb->{_index}) && (@{$pdb->{_index}} != ()))
+	} elsif ((defined $pdb->{_index}) && @{$pdb->{_index}})
 	{
 		# There's no sort block; the next thing in the file is
 		# the first data record
@@ -422,7 +422,7 @@ sub _load_appinfo_block
 	}
 
 	# Tell the real class to parse the AppInfo block
-	$pdb->{"appinfo"} = $pdb->ParseAppInfoBlock($buf);
+	$pdb->{appinfo} = $pdb->ParseAppInfoBlock($buf);
 
 	# Print out the parsed values
 	if (ref($pdb->{appinfo}) ne "")
@@ -583,13 +583,19 @@ sub _load_resources
 
 		# Sanity check: make sure we're where we think we
 		# should be.
-		if (tell($fh) != $pdb->{_index}[$i]{offset})
+		if (tell($fh) > $pdb->{_index}[$i]{offset})
 		{
 			die "Bad offset for resource $i: expected ",
 				sprintf("0x%08x",
 					$pdb->{_index}[$i]{offset}),
 				" but it's at ",
 				sprintf("0x%08x", tell($fh)), "\n";
+		}
+
+		# Seek to the right place, if necessary
+		if (tell($fh) != $pdb->{_index}[$i]{offset})
+		{
+			seek PDB, $pdb->{_index}[$i]{offset}, 0;
 		}
 
 		# Compute the length of the resource: the last
