@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ZirePhoto.pm,v 1.1 2003-06-24 14:28:11 azummo Exp $
+# $Id: ZirePhoto.pm,v 1.2 2003-09-16 22:53:47 azummo Exp $
 
 
 use strict;
@@ -16,7 +16,7 @@ use Palm::Raw();
 use vars qw( $VERSION @ISA );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.2 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @ISA = qw( Palm::Raw );
 
@@ -47,14 +47,6 @@ sub new
 	return $self;
 }
 
-sub new_Record
-{
-	my $classname = shift;
-	my $retval = $classname->SUPER::new_Record(@_);
-
-	return $retval;
-}
-
 sub ParseRecord
 {
 	my $self	= shift;
@@ -83,15 +75,6 @@ sub ParseRecord
 	$record{'name'} = substr($record{'name'}, 0, $record{'nameSize'});
 
 	return \%record;
-}
-
-sub PackRecord
-{
-	my $self	= shift;
-	my $record	= shift;
-	my $retval	= {};
-
-	return $retval;
 }
 
 1;
