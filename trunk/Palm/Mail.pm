@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.10 2000-07-19 03:58:38 arensb Exp $
+# $Id: Mail.pm,v 1.11 2000-08-13 22:00:38 arensb Exp $
 
 use strict;
 package Palm::Mail;
@@ -14,7 +14,7 @@ use Palm::Raw();
 use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.10 $ ) )[1];
+$VERSION = (qw( $Revision: 1.11 $ ) )[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -233,7 +233,7 @@ sub ParseAppInfoBlock
 	# Get the standard parts of the AppInfo block
 	$std_len = &Palm::StdAppInfo::parse_StdAppInfo($appinfo, $data);
 
-	$data = substr $data, $std_len;		# Remove the parsed part
+	$data = $appinfo->{other};		# Look at the non-category part
 
 	# Get the rest of the AppInfo block
 	my $unpackstr =		# Argument to unpack()
@@ -259,15 +259,15 @@ sub PackAppInfoBlock
 	my $self = shift;
 	my $retval;
 
-	# Pack the standard part of the AppInfo block
-	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
-
-	# And the application-specific stuff
-	$retval .= pack "x2 n Cx N n",
+	# Pack the non-category part of the AppInfo block
+	$self->{appinfo}{other} = pack "x2 n Cx N n",
 		$self->{appinfo}{dirty_AppInfo},
 		$self->{appinfo}{sort_order},
 		$self->{appinfo}{unsent},
 		$self->{appinfo}{sig_offset};
+
+	# Pack the AppInfo block
+	$retval = &Palm::StdAppInfo::pack_StdAppInfo($self->{appinfo});
 
 	return $retval;
 }
