@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Datebook.pm,v 1.8 2000-07-19 03:58:35 arensb Exp $
+# $Id: Datebook.pm,v 1.9 2000-07-20 04:17:22 arensb Exp $
 
 use strict;
 package Palm::Datebook;
@@ -15,7 +15,7 @@ use Palm::StdAppInfo();
 
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.8 $ ))[1];
+$VERSION = (qw( $Revision: 1.9 $ ))[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 
@@ -263,8 +263,8 @@ sub new_Record
 	$retval->{alarm}{advance} = 10;
 	$retval->{alarm}{unit} = 0;		# Minutes
 
-	# No repeat
-	# delete($retval->{repeat});
+	$retval->{repeat} = {};			# No repeat
+	$retval->{exceptions} = [];		# No exceptions
 
 	$retval->{description} = "";
 	$retval->{note} = undef;
@@ -543,7 +543,7 @@ sub PackRecord
 
 	my $alarm = undef;
 
-	if (%{$record->{alarm}} ne ())
+	if (defined($record->{alarm}) && %{$record->{alarm}})
 	{
 		$flags |= 0x4000;
 		$alarm = pack "c C",
@@ -553,7 +553,7 @@ sub PackRecord
 
 	my $repeat = undef;
 
-	if (%{$record->{repeat}} ne ())
+	if (defined($record->{repeat}) && %{$record->{repeat}})
 	{
 		my $type;		# Repeat type
 		my $endDate;
@@ -614,7 +614,7 @@ sub PackRecord
 
 	my $exceptions = undef;
 
-	if (@{$record->{exceptions}} ne ())
+	if (defined($record->{exceptions}) && @{$record->{exceptions}})
 	{
 		my $numExceptions = $#{$record->{exceptions}} + 1;
 		my $exception;
