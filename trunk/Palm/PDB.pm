@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.33 2003-11-10 01:40:25 azummo Exp $
+# $Id: PDB.pm,v 1.34 2004-04-09 02:55:21 christophe Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.33 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.34 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 =head1 NAME
 
@@ -995,6 +995,9 @@ sub Write
 	my $self = shift;
 	my $fname = shift;		# Output file name
 	my @record_data;
+
+	die "Can't write a database with no name\n"
+		unless $self->{name} ne "";
 
 	# Open file
 	open OFILE, "> $fname" or die "Can't write to \"$fname\": $!\n";
