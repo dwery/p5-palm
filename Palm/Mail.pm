@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Mail.pm,v 1.8 2000-05-13 05:12:51 arensb Exp $
+# $Id: Mail.pm,v 1.9 2000-05-13 20:29:17 arensb Exp $
 
 use strict;
 package Palm::Mail;
@@ -14,7 +14,7 @@ use Palm::Raw();
 use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
-$VERSION = (qw( $Revision: 1.8 $ ) )[1];
+$VERSION = (qw( $Revision: 1.9 $ ) )[1];
 @ISA = qw( Palm::Raw Palm::StdAppInfo );
 
 =head1 NAME
@@ -364,8 +364,8 @@ sub ParseRecord
 	$record{to} = $to;
 	$record{cc} = $cc;
 	$record{bcc} = $bcc;
-	$record{reply_to} = $replyTo;
-	$record{sent_to} = $sentTo;
+	$record{replyTo} = $replyTo;
+	$record{sentTo} = $sentTo;
 	$record{body} = $body;
 	$record{extra} = $extra;
 
@@ -403,8 +403,8 @@ sub PackRecord
 		$record->{to},
 		$record->{cc},
 		$record->{bcc},
-		$record->{reply_to},
-		$record->{sent_to},
+		$record->{replyTo},
+		$record->{sentTo},
 		$record->{body};
 	$retval .= "\0";
 
