@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.18 2000-09-25 05:05:24 arensb Exp $
+# $Id: PDB.pm,v 1.19 2000-11-09 15:32:33 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = sprintf "%d.%03d", '$Revision: 1.18 $ ' =~ m{(\d+)\.(\d+)};
+$VERSION = sprintf "%d.%03d", '$Revision: 1.19 $ ' =~ m{(\d+)\.(\d+)};
 
 =head1 NAME
 
@@ -978,9 +978,14 @@ sub Write
 			# Get all the stuff that goes in the index, as
 			# well as the record data.
 			$attributes = 0;
-			$attributes = ($record->{category} & 0x0f)
-				unless ($record->{attributes}{expunged} ||
-					$record->{attributes}{deleted});
+			if ($record->{attributes}{expunged} ||
+			    $record->{attributes}{deleted})
+			{
+				$attributes |= 0x08
+					if $record->{attributes}{archive};
+			} else {
+				$attributes = ($record->{category} & 0x0f);
+			}
 			$attributes |= 0x80
 				if $record->{attributes}{expunged};
 			$attributes |= 0x40
@@ -1017,7 +1022,7 @@ sub Write
 		($self->{attributes}{open}		? 0x0040 : 0);
 
 	# Calculate AppInfo block offset
-	if ($appinfo_block eq "")
+	if ((!defined($appinfo_block)) || ($appinfo_block eq ""))
 	{
 		# There's no AppInfo block
 		$appinfo_offset = 0;
@@ -1187,6 +1192,7 @@ Creates a new record, with the bare minimum needed:
 	$record->{attributes}{dirty}
 	$record->{attributes}{deleted}
 	$record->{attributes}{private}
+	$record->{attributes}{archive}
 	$record->{id}
 
 The ``dirty'' attribute is originally set, since this function will
@@ -1213,6 +1219,7 @@ sub new_Record
 		dirty		=> 1,	# Note: originally dirty
 		deleted		=> 0,
 		private		=> 0,
+		archive         => 0,
 	};
 	$retval->{id} = 0;		# Initially, no record ID
 
@@ -1483,6 +1490,7 @@ written to the database file.
         	dirty    => bool,	# True iff dirty
         	deleted  => bool,	# True iff deleted
         	private  => bool,	# True iff private
+	        archive  => bool,       # True iff to be archived
               },
           category       => $category,	# Record's category number
           id             => $id,	# Record's unique ID
