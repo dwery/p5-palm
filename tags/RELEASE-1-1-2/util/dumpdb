@@ -1,0 +1,302 @@
+#!/usr/bin/perl
+# Utility to dump the contents of a PDB.
+#
+# $Id: dumpdb,v 1.4 2000-01-23 06:33:32 arensb Exp $
+use lib "/folks/arensb/proj/palm-perl";
+use strict;
+
+use Palm::Raw;
+use Palm::Memo;
+use Palm::Address;
+use Palm::Datebook;
+use Palm::Mail;
+use Palm::ToDo;
+
+&Palm::PDB::RegisterPRCHandlers("Palm::Raw", "");
+
+my $pdb = new Palm::PDB;
+
+$pdb->Load($ARGV[0]);
+$pdb->Dump;
+
+# This is an ugly hack
+package Palm::Raw;
+
+sub Dump
+{
+	print "-"x70, "\n";
+	print "\$pdb contains:\n\t";
+	print join("\n\t", keys %{$pdb}), "\n";
+	print "creator: [$pdb->{creator}]\n";
+	print "type: [$pdb->{type}]\n";
+
+	print "AppInfo block: [$pdb->{appinfo}]\n"
+		if exists($pdb->{"appinfo"});
+	print "Sort block: [$pdb->{sort}]\n"
+		if exists($pdb->{"sort"});
+
+	my @records;
+	my $record;
+
+	if ($pdb->{"attributes"}{"resource"})
+	{
+		@records = (defined($pdb->{"resources"}) ?
+			    @{$pdb->{"resources"}} :
+			    ());
+	} else {
+		@records = (defined($pdb->{"records"}) ?
+			    @{$pdb->{"records"}} :
+			    ());
+	}
+
+	foreach $record (@records)
+	{
+		my $key;
+		my $data;
+
+		if ($pdb->{"attributes"}{"resource"})
+		{
+			print "Resource:\n";
+		} else {
+			print "Record:\n";
+		}
+		while (($key, $data) = each %{$record})
+		{
+			print "\t[$key] -> [$data]\n";
+		}
+	}
+}
+
+
+package Palm::Memo;
+
+sub Dump
+{
+	print "-"x70, "\n";
+	print "\$pdb contains:\n";
+	for (keys %{$pdb})
+	{
+		print "\t[$_] -> [$pdb->{$_}]\n";
+	}
+
+	print "AppInfo block: [$pdb->{appinfo}]\n"
+		if exists($pdb->{"appinfo"});
+	print "Sort block: [$pdb->{sort}]\n"
+		if exists($pdb->{"sort"});
+
+	my $record;
+	foreach $record (@{$pdb->{"records"}})
+	{
+		my $key;
+		my $data;
+	
+		print "Record:\n";
+		while (($key, $data) = each %{$record})
+		{
+			if ($key eq "category")
+			{
+				print "\t[$key] -> [$data] == \"",
+					$pdb->{"appinfo"}{"categories"}[$data],
+					"\"\n";
+				next;
+			}
+			if ($key eq "attributes")
+			{
+				print "\t[$key] -> (",
+					join(", ", keys %{$data}), ")\n";
+				next;
+			}
+			print "\t[$key] -> [$data]\n";
+		}
+	}
+}
+
+package Palm::Address;
+no strict 'vars';
+
+sub Dump
+{
+	print "-"x70, "\n";
+	print "\$pdb contains:\n\t";
+	print join("\n\t", keys %{$pdb}), "\n";
+
+	print "AppInfo block:\n";
+	print "  fieldLabels:\n";
+	for (sort keys %{$pdb->{"appinfo"}{"fieldLabels"}})
+	{
+		print "\t[$_] -> [$pdb->{appinfo}{fieldLabels}{$_}]\n";
+	}
+	# XXX - Print the other interesting stuff in the AppInfo block.
+
+	my $record;
+	foreach $record (@{$pdb->{"records"}})
+	{
+		my $key;
+		my $data;
+	
+		print "Record:\n";
+		print "\tDisplay by $phoneLabels[$record->{phoneLabel}{display}]\n";
+		while (($key, $data) = each %{$record})
+		{
+			if ($key eq "attributes")
+			{
+				my $key;
+				my $data;
+
+				while (($key, $data) = each %{$record->{"attributes"}})
+				{
+					print "\tAttribute [$key] -> [$data]\n";
+				}
+				next;
+			}
+			if ($key eq "fields")
+			{
+				my $key;
+				my $data;
+
+				while (($key, $data) = each %{$record->{"fields"}})
+				{
+					if ($key =~ /^phone[1-5]$/)
+					{
+						print "\tPhone [$key] ($phoneLabels[$record->{phoneLabel}{$key}]) -> [$data]\n";
+						next;
+					}
+					print "\tField [$key] -> [$data]\n";
+				}
+				next;
+			}
+			print "\t[$key] -> [$data]\n";
+		}
+	}
+}
+
+package Palm::Datebook;
+
+sub Dump
+{
+	print "-"x70, "\n";
+	print "\$pdb contains:\n\t";
+	print join("\n\t", keys %{$pdb}), "\n";
+
+	my $record;
+	foreach $record (@{$pdb->{"records"}})
+	{
+		print "Record:\n";
+		print "\tDescription: [$record->{description}]\n";
+		print "\tDate: $record->{day}/$record->{month}/$record->{year}\n";
+		if ($record->{"start_hour"} == 255)
+		{
+			print "\tTime: *none*\n";
+		} else {
+			print "\tTime: $record->{start_hour}:$record->{start_minute}-$record->{end_hour}:$record->{end_minute}\n";
+		}
+
+		if (exists($record->{"when_changed"}))
+		{
+			print "\tWhen has changed (whatever that means)\n";
+		}
+
+		if (exists($record->{"alarm"}))
+		{
+			my $alarm = $record->{"alarm"};
+			my @units = ( "Minutes", "Hours", "Days" );
+
+			print "\tAlarm: $alarm->{advance} ",
+				$units[$alarm->{"unit"}], "\n";
+		}
+
+		if (exists($record->{"repeat"}))
+		{
+			my @weekdays = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" );
+			my $repeat = $record->{"repeat"};
+
+			print "\tRepeat";
+
+			if ($repeat->{"type"} == 0)
+			{
+				# None
+				print " *** Never ***";
+			} elsif ($repeat->{"type"} == 1) {
+				# Daily
+				print " every $repeat->{frequency} day(s)";
+			} elsif ($repeat->{"type"} == 2) {
+				# Weekly
+				my @repdays;
+				my $i;
+
+				print " every $repeat->{frequency} week(s)";
+				for ($i = 0; $i <= $#{$repeat->{"repeat_days"}}; $i++)
+				{
+					if ($repeat->{"repeat_days"}[$i])
+					{
+						push @repdays, $weekdays[$i];
+					}
+				}
+				print " on ", join(", ", @repdays);
+			} elsif ($repeat->{"type"} == 3) {
+				# Monthly by day
+				print " every $repeat->{frequency} month(s)";
+#				print " on the $repeat->{repeat_day}th";
+				print " on $weekdays[$repeat->{daynum}] of the ",
+					($repeat->{"weeknum"} == 4 ?
+					 "last" : ($repeat->{"weeknum"}+1) . "th"),
+					" week";
+			} elsif ($repeat->{"type"} == 4) {
+				# Monthly by date
+				print " every $repeat->{frequency} month(s)";
+			} elsif ($repeat->{"type"} == 5) {
+				# Yearly
+				print " every $repeat->{frequency} year(s)";
+			} else {
+				print "*** Illegal repeat type ***";
+			}
+
+			if (exists($repeat->{"end_day"}))
+			{
+				print " until $repeat->{end_day}/$repeat->{end_month}/$repeat->{end_year}\n";
+			} else {
+				print " forever\n";
+			}
+		}
+
+		if (exists($record->{"exceptions"}))
+		{
+			my $exception;
+			my $day;
+			my $month;
+			my $year;
+
+			print "\tExcept:\n";
+			foreach $exception (@{$record->{"exceptions"}})
+			{
+				($day, $month, $year) = @{$exception};
+				print "\t    $day/$month/$year\n";
+			}
+		}
+
+		print "\tNote: [$record->{note}]\n"
+			if exists($record->{"note"});
+	}
+}
+
+package DopeWars;
+
+sub Dump
+{
+	print "-"x70, "\n";
+	print "\$pdb contains:\n\t";
+	print join("\n\t", keys %{$pdb}), "\n";
+
+	my $record;
+	foreach $record (@{$pdb->{"records"}})
+	{
+		my $user;
+		my $score;
+
+		print "Record:\n";
+		@scores = @{$record->{"scores"}};
+		($user, $score) = @{$record->{"scores"}[0]};
+		print "\tUser: [$user]\n";
+		print "\tScore: [$score]\n";
+	}
+}
