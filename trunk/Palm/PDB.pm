@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.8 2000-04-29 20:52:17 arensb Exp $
+# $Id: PDB.pm,v 1.9 2000-05-06 21:18:41 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -23,7 +23,7 @@ use strict;
 package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
-$VERSION = (qw( $Revision: 1.8 $ ))[1];
+$VERSION = (qw( $Revision: 1.9 $ ))[1];
 
 =head1 NAME
 
@@ -1513,17 +1513,17 @@ Andrew Arensburger E<lt>arensb@ooblick.comE<gt>
 
 =head1 SEE ALSO
 
-Palm::Raw(1)
+Palm::Raw(3)
 
-Palm::Address(1)
+Palm::Address(3)
 
-Palm::Datebook(1)
+Palm::Datebook(3)
 
-Palm::Mail(1)
+Palm::Mail(3)
 
-Palm::Memo(1)
+Palm::Memo(3)
 
-Palm::ToDo(1)
+Palm::ToDo(3)
 
 F<Palm Database Files>, in the ColdSync distribution.
 
