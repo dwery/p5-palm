@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.23 2002-02-15 14:40:59 arensb Exp $
+# $Id: PDB.pm,v 1.24 2002-06-16 12:19:30 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 $VERSION = sprintf "%d.%03d_%03d_%03d",
-	'$Revision: 1.23 $ ' =~ m{(\d+)(?:\.(\d+))};
+	'$Revision: 1.24 $ ' =~ m{(\d+)(?:\.(\d+))};
 
 =head1 NAME
 
@@ -460,8 +460,26 @@ sub Load
 	$self->{attributes}{backup} = 1 if $attributes & 0x0008;
 	$self->{attributes}{"OK newer"} = 1 if $attributes & 0x0010;
 	$self->{attributes}{reset} = 1 if $attributes & 0x0020;
-	$self->{attributes}{open} = 1 if $attributes & 0x0040;
+	$self->{attributes}{open} = 1 if $attributes & 0x8000;
 	$self->{attributes}{launchable} = 1 if $attributes & 0x0200;
+
+	# Attribute names as of PalmOS 5.0 ( see /Core/System/DataMgr.h )
+
+	$self->{'attributes'}{'ResDB'}			= 1 if $attributes & 0x0001; 
+	$self->{'attributes'}{'ReadOnly'}		= 1 if $attributes & 0x0002; 
+	$self->{'attributes'}{'AppInfoDirty'}		= 1 if $attributes & 0x0004; 
+	$self->{'attributes'}{'Backup'}			= 1 if $attributes & 0x0008; 
+	$self->{'attributes'}{'OKToInstallNewer'}	= 1 if $attributes & 0x0010; 
+	$self->{'attributes'}{'ResetAfterInstall'}	= 1 if $attributes & 0x0020; 
+	$self->{'attributes'}{'CopyPrevention'}		= 1 if $attributes & 0x0040; 
+	$self->{'attributes'}{'Stream'}			= 1 if $attributes & 0x0080; 
+	$self->{'attributes'}{'Hidden'}			= 1 if $attributes & 0x0100; 
+	$self->{'attributes'}{'LaunchableData'}		= 1 if $attributes & 0x0200; 
+	$self->{'attributes'}{'Recyclable'}		= 1 if $attributes & 0x0400; 
+	$self->{'attributes'}{'Bundle'}			= 1 if $attributes & 0x0800; 
+	$self->{'attributes'}{'Open'}			= 1 if $attributes & 0x8000; 
+
+
 	$self->{version} = $version;
 	$self->{ctime} = $ctime - $EPOCH_1904;
 	$self->{mtime} = $mtime - $EPOCH_1904;
