@@ -12,7 +12,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: Raw.pm,v 1.2 1999-11-18 06:21:26 arensb Exp $
+# $Id: Raw.pm,v 1.3 1999-11-18 08:24:45 arensb Exp $
 
 package Palm::Raw;
 
@@ -101,11 +101,32 @@ Palm::Raw - Handler for "raw" Palm databases.
 
     use Palm::Raw;
 
+For standalone programs.
+
+    use Palm::Raw();
+    @ISA = qw( Palm::Raw );
+
+For Palm::PDB helper modules.
+
 =head1 DESCRIPTION
 
 The Raw PDB handler is a helper class for the Palm::PDB package. It is
 intended as a generic handler for any database, or as a fallback
 default handler.
+
+If you have a standalone program and want it to be able to parse any
+type of database, use
+
+    use Palm::Raw;
+
+If you are using Palm::Raw as a parent class for your own database
+handler, use
+
+    use Palm::Raw();
+
+If you omit the parentheses, Palm::Raw will register itself as the
+default handler for all databases, which is probably not what you
+want.
 
 The Raw handler does no processing on the database whatsoever. The
 AppInfo block, sort block, records and resources are simply strings,
