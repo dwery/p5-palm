@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.2 1999-11-18 06:20:48 arensb Exp $
+# $Id: PDB.pm,v 1.3 1999-11-18 18:20:39 arensb Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -24,6 +24,7 @@
 # shove it over the network or something.
 
 package Palm::PDB;
+($VERSION) = '$Revision: 1.3 $ ' =~ /\$Revision:\s+([^\s]+)/;
 
 # XXX - Fix the function cross-references.
 
