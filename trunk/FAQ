@@ -1,0 +1,8 @@
+Q: I'm trying to read the "datebook.dat", "address.dat", "todo.dat" or
+   "memopad.dat" files created by the HotSync desktop tool, but it
+   doesn't work.
+
+A: Those files aren't PDB files, so these modules can't read them. It
+   looks as if the HotSync conduits don't store a backup PDB file of
+   the database.
+	In any case, I don't know what format those files are in.
