@@ -1,8 +1,7 @@
 #!/usr/bin/perl
 # Utility to dump the contents of a PDB.
 #
-# $Id: dumpdb,v 1.4 2000-01-23 06:33:32 arensb Exp $
-use lib "/folks/arensb/proj/palm-perl";
+# $Id: dumpdb,v 1.5 2000-04-24 10:01:44 arensb Exp $
 use strict;
 
 use Palm::Raw;
@@ -67,6 +66,28 @@ sub Dump
 	}
 }
 
+sub DumpAppInfo
+{
+	my $appinfo = shift;
+	my $key;
+	my $value;
+
+	print STDERR "Inside Palm::Raw::DumpAppInfo\n";
+	while (($key, $value) = each %{$appinfo})
+	{
+		print "    [$key] -> ";
+		if (ref($value) eq "")
+		{
+			print "[$value]\n";
+		} elsif (ref($value) eq "SCALAR")
+		{
+			print "[${$value}]\n";
+		} elsif (ref($value) eq "ARRAY")
+		{
+			print "[@{$value}]\n";
+		}
+	}
+}
 
 package Palm::Memo;
 
@@ -81,6 +102,7 @@ sub Dump
 
 	print "AppInfo block: [$pdb->{appinfo}]\n"
 		if exists($pdb->{"appinfo"});
+	&DumpAppInfo($pdb->{"appinfo"});
 	print "Sort block: [$pdb->{sort}]\n"
 		if exists($pdb->{"sort"});
 
@@ -107,6 +129,29 @@ sub Dump
 				next;
 			}
 			print "\t[$key] -> [$data]\n";
+		}
+	}
+}
+
+sub DumpAppInfo
+{
+	my $appinfo = shift;
+	my $key;
+	my $value;
+
+	print STDERR "Inside Palm::Memo::DumpAppInfo\n";
+	while (($key, $value) = each %{$appinfo})
+	{
+		print "    [$key] -> ";
+		if (ref($value) eq "")
+		{
+			print "[$value]\n";
+		} elsif (ref($value) eq "SCALAR")
+		{
+			print "[${$value}]\n";
+		} elsif (ref($value) eq "ARRAY")
+		{
+			print "[@{$value}]\n";
 		}
 	}
 }
