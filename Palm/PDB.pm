@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: PDB.pm,v 1.31 2003-10-10 10:51:14 azummo Exp $
+# $Id: PDB.pm,v 1.32 2003-10-10 11:01:49 azummo Exp $
 
 # A Palm database file (either .pdb or .prc) has the following overall
 # structure:
@@ -25,7 +25,7 @@ package Palm::PDB;
 use vars qw( $VERSION %PDBHandlers %PRCHandlers );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.31 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.32 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 =head1 NAME
 
@@ -1358,6 +1358,7 @@ sub append_Record
 
 		# Update the "last modification time".
 		$self->{mtime} = time;
+		$self->{dirty} = 1;
 
 		return $record;
 	}
@@ -1434,6 +1435,7 @@ sub append_Resource
 
 		# Update the "last modification time".
 		$self->{mtime} = time;
+		$self->{'dirty'} = 1;
 
 		return $resource;
 	}
@@ -1519,6 +1521,49 @@ sub delete_Record
 	# Update the "last modification time".
 	$self->{mtime} = time;
 	$self->{'dirty'} = 1;
+}
+
+=head2 remove_Record
+
+	for (@{$pdb->{'records'}})
+	{
+		$pdb->remove_Record( $_ ) if $_->{attributes}{deleted};
+	}
+
+Removes C<$record> from the database. This differs from C<delete_Record>
+in that it's an actual deletion rather than just setting a flag.
+
+This method updates $pdb's "last modification" time.
+
+=cut
+#'
+
+sub remove_Record($$)
+{
+	my $self = shift;
+	my $record = shift;
+
+	for (my $i = 0; $i <= $#{$self->{records}}; $i ++)
+	{
+		if ($self->{records}->[$i] == $record)
+		{
+			# make a copy of the records array. This is really necessary
+			# because there's frequently something using the records reference
+			# for iteration purposes (like the doc example) and we can't
+			# just start splicing that apart (tried, failed).
+			# So we have to make a new copy. This does, unfortunately,
+			# make remove_Record() more expensive that you'd expect.
+			$self->{records} = [ @{$self->{records}} ];
+
+			# remove the record index.
+			splice @{$self->{records}}, $i, 1;
+
+			$self->{mtime} = time;
+			$self->{'dirty'} = 1;
+
+			last;
+		}
+	}
 }
 
 1;
