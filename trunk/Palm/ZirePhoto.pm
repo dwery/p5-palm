@@ -6,7 +6,7 @@
 #	You may distribute this file under the terms of the Artistic
 #	License, as specified in the README file.
 #
-# $Id: ZirePhoto.pm,v 1.6 2004-10-03 03:25:52 christophe Exp $
+# $Id: ZirePhoto.pm,v 1.7 2005-07-29 20:54:14 christophe Exp $
 
 
 use strict;
@@ -17,7 +17,7 @@ use Palm::StdAppInfo();
 use vars qw( $VERSION @ISA );
 
 # One liner, to allow MakeMaker to work.
-$VERSION = do { my @r = (q$Revision: 1.6 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+$VERSION = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 
 @ISA = qw( Palm::StdAppInfo Palm::Raw );
 
@@ -88,6 +88,11 @@ image, one would do something like:
 		print F substr($_->{'data'}, 8);
 	}
 	close F;
+
+Notes are stored at the end of the JPEG image. The following code can be used to
+extract a note from a JPEG buffer C<$data>:
+
+	my $note = $1 if $data =~ /NOTE.{8}([^\0]+)\0*ARCPHOTOBASE.{8}$/so;
 
 =cut
 #'
