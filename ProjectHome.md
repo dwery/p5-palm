@@ -1,0 +1,1 @@
+P5-Palm is a companion package to ColdSync. This is a set of Perl modules for reading and writing Palm database files.
